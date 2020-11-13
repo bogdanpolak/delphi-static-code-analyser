@@ -32,7 +32,7 @@ uses
   {$ENDIF}
   DelphiAST.Consts;
 
-{$I SimpleParser.inc}
+{$I SimpleParser/SimpleParser.inc}
 {$IFDEF D18_NEWER}
   {$ZEROBASEDSTRINGS OFF}
 {$ENDIF}
