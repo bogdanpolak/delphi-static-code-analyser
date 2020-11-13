@@ -20,66 +20,48 @@ procedure ApplicationRun();
 
 implementation
 
-procedure Parse(const FileName: string; UseStringInterning: Boolean);
+function Parse(const FileName: string): string;
 var
-  SeyntaxTree: TSyntaxNode;
-  sw: TStopwatch;
-  StringPool: TStringPool;
-  OnHandleString: TStringEvent;
+  syntaxtree: TSyntaxNode;
   Builder: TPasSyntaxTreeBuilder;
   StringStream: TStringStream;
-  xmlstring: String;
 begin
+  Result := '';
   try
-    if UseStringInterning then
-    begin
-      StringPool := TStringPool.Create;
-      OnHandleString := StringPool.StringIntern;
-    end
-    else
-    begin
-      StringPool := nil;
-      OnHandleString := nil;
-    end;
+    Builder := TPasSyntaxTreeBuilder.Create;
     try
-      Builder := TPasSyntaxTreeBuilder.Create;
+      StringStream := TStringStream.Create;
       try
-        StringStream := TStringStream.Create;
+        StringStream.LoadFromFile(FileName);
+        Builder.IncludeHandler := TIncludeHandler.Create
+          (ExtractFilePath(FileName));
+        StringStream.Position := 0;
+        syntaxtree := Builder.Run(StringStream);
         try
-          StringStream.LoadFromFile(FileName);
-
-          Builder.IncludeHandler := TIncludeHandler.Create
-            (ExtractFilePath(FileName));
-          Builder.OnHandleString := OnHandleString;
-          StringStream.Position := 0;
-
-          SyntaxTree := Builder.Run(StringStream);
-          try
-            xmlstring := TSyntaxTreeWriter.ToXML(SyntaxTree, True);
-          finally
-            SyntaxTree.Free;
-          end;
+          Result := TSyntaxTreeWriter.ToXML(syntaxtree, True);
         finally
-          StringStream.Free;
+          syntaxtree.Free;
         end;
       finally
-        Builder.Free;
-      end
+        StringStream.Free;
+      end;
     finally
-      if UseStringInterning then
-        StringPool.Free;
-    end;
-    sw.Stop;
+      Builder.Free;
+    end
   except
     on E: ESyntaxTreeException do
       writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
-        sLineBreak + TSyntaxTreeWriter.ToXML(E.SyntaxTree, True));
+        sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxtree, True));
   end;
 end;
 
 procedure ApplicationRun();
+var
+  s: string;
 begin
   writeln('DelphiAST Console Writer Demo');
+  s := Parse('C:\Sources\github\DelphiAST\Test\uMainForm.pas');
+  writeln(s);
   readln;
 end;
 
