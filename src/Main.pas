@@ -20,6 +20,9 @@ procedure ApplicationRun();
 
 implementation
 
+uses
+  AnaliticsWriter;
+
 function Parse(const FileName: string): string;
 var
   syntaxtree: TSyntaxNode;
@@ -38,7 +41,8 @@ begin
         StringStream.Position := 0;
         syntaxtree := Builder.Run(StringStream);
         try
-          Result := TSyntaxTreeWriter.ToXML(syntaxtree, True);
+          TSyntaxTreeConsoleWriter.Generate(syntaxtree);
+          // writeln(TSyntaxTreeWriter.ToXML(syntaxtree,true));
         finally
           syntaxtree.Free;
         end;

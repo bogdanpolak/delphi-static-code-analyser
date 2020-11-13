@@ -19,7 +19,8 @@ uses
   SimpleParser.Lexer.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Lexer.Types.pas',
   SimpleParser in '..\components\DelphiAST\SimpleParser\SimpleParser.pas',
   SimpleParser.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Types.pas',
-  IncludeHandler in 'IncludeHandler.pas';
+  IncludeHandler in 'IncludeHandler.pas',
+  AnaliticsWriter in 'AnaliticsWriter.pas';
 
 begin
   try
