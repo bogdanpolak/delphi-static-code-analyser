@@ -55,12 +55,24 @@ begin
   end;
 end;
 
+function GetTestFolder(): string;
+begin
+  if DirectoryExists('..\..\..\test\data') then
+    Result := '..\..\..\test\data\'
+  else if DirectoryExists('..\test\data') then
+    Result := '..\test\data'
+  else
+    raise Exception.Create('Can''t find test data folder.');
+end;
+
 procedure ApplicationRun();
 var
   s: string;
+  fname: string;
 begin
   writeln('DelphiAST Console Writer Demo');
-  s := Parse('C:\Sources\github\DelphiAST\Test\uMainForm.pas');
+  fname := TPath.Combine(GetTestFolder, 'testunit.pas');
+  s := Parse(fname);
   writeln(s);
   readln;
 end;
