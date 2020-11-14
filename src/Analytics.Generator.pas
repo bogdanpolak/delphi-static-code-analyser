@@ -23,24 +23,24 @@ uses
 var
   fUnitMetrics: TUnitMetrics;
 
-procedure NodeTreeWalker(const Node: TSyntaxNode);
+procedure NodeTreeWalker(const aNode: TSyntaxNode);
 var
-  ChildNode: TSyntaxNode;
-  cnode: TCompoundSyntaxNode;
+  child: TSyntaxNode;
+  compound: TCompoundSyntaxNode;
 begin
-  if Node.Typ = ntInterface then
+  if aNode.Typ = ntInterface then
     exit;
-  if Node.Typ = ntMethod then
+  if aNode.Typ = ntMethod then
   begin
-    cnode := Node as TCompoundSyntaxNode;
+    compound := aNode as TCompoundSyntaxNode;
     fUnitMetrics.AddMethod(
-      { } cnode.GetAttribute(anKind),
-      { } cnode.GetAttribute(anName),
-      { } cnode.EndLine - cnode.Line + 1);
+      { } aNode.GetAttribute(anKind),
+      { } aNode.GetAttribute(anName),
+      { } compound.EndLine - compound.Line + 1);
     exit;
   end;
-  for ChildNode in Node.ChildNodes do
-    NodeTreeWalker(ChildNode);
+  for child in aNode.ChildNodes do
+    NodeTreeWalker(child);
 end;
 
 class function TAnalyticsGenerator.Build(const Root: TSyntaxNode): TUnitMetrics;
