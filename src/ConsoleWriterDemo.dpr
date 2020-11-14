@@ -20,7 +20,7 @@ uses
   SimpleParser in '..\components\DelphiAST\SimpleParser\SimpleParser.pas',
   SimpleParser.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Types.pas',
   IncludeHandler in 'IncludeHandler.pas',
-  AnaliticsWriter in 'AnaliticsWriter.pas';
+  Analitics.SyntaxTreeWriter in 'Analitics.SyntaxTreeWriter.pas';
 
 begin
   try

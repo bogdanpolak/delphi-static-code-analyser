@@ -1,4 +1,4 @@
-unit AnaliticsWriter;
+unit Analitics.SyntaxTreeWriter;
 
 interface
 
@@ -8,7 +8,7 @@ uses
   DelphiAST.Classes;
 
 type
-  TSyntaxTreeConsoleWriter = class
+  TSyntaxTreeAnalitycsWriter = class
   public
     class procedure Generate(const Root: TSyntaxNode); static;
   end;
@@ -26,7 +26,6 @@ var
   len: Integer;
   methodname: string;
   attr: TPair<TAttributeName, string>;
-  s: string;
   mkind: string;
   mname: string;
 begin
@@ -50,7 +49,7 @@ begin
 end;
 
 
-class procedure TSyntaxTreeConsoleWriter.Generate(const Root: TSyntaxNode);
+class procedure TSyntaxTreeAnalitycsWriter.Generate(const Root: TSyntaxNode);
 begin
   NodeTreeWalker(Root);
 end;
