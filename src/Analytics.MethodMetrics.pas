@@ -1,4 +1,4 @@
-unit Analitics.MethodMetrics;
+unit Analytics.MethodMetrics;
 
 interface
 

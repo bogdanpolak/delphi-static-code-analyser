@@ -1,10 +1,10 @@
-unit Analitics.UnitMetrics;
+unit Analytics.UnitMetrics;
 
 interface
 
 uses
   System.Generics.Collections,
-  Analitics.MethodMetrics;
+  Analytics.MethodMetrics;
 
 type
   TUnitMetrics = class

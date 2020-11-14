@@ -21,7 +21,7 @@ procedure ApplicationRun();
 implementation
 
 uses
-  Analitics.SyntaxTreeWriter;
+  Analytics.Generator;
 
 function Parse(const FileName: string): string;
 var
@@ -41,7 +41,7 @@ begin
         StringStream.Position := 0;
         syntaxtree := Builder.Run(StringStream);
         try
-          TSyntaxTreeAnalitycsWriter.Generate(syntaxtree);
+          TAnalyticsGenerator.Build(syntaxtree);
           // writeln(TSyntaxTreeWriter.ToXML(syntaxtree,true));
         finally
           syntaxtree.Free;

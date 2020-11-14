@@ -20,9 +20,9 @@ uses
   SimpleParser in '..\components\DelphiAST\SimpleParser\SimpleParser.pas',
   SimpleParser.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Types.pas',
   IncludeHandler in 'IncludeHandler.pas',
-  Analitics.SyntaxTreeWriter in 'Analitics.SyntaxTreeWriter.pas',
-  Analitics.UnitMetrics in 'Analitics.UnitMetrics.pas',
-  Analitics.MethodMetrics in 'Analitics.MethodMetrics.pas';
+  Analytics.Generator in 'Analytics.Generator.pas',
+  Analytics.UnitMetrics in 'Analytics.UnitMetrics.pas',
+  Analytics.MethodMetrics in 'Analytics.MethodMetrics.pas';
 
 begin
   try
