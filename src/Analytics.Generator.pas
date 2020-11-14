@@ -5,12 +5,13 @@ interface
 uses
   System.SysUtils,
   System.Classes,
-  DelphiAST.Classes;
+  DelphiAST.Classes,
+  Analytics.UnitMetrics;
 
 type
   TAnalyticsGenerator = class
   public
-    class procedure Build(const Root: TSyntaxNode); static;
+    class function Build(const Root: TSyntaxNode): TUnitMetrics; static;
   end;
 
 implementation
@@ -19,33 +20,33 @@ uses
   Generics.Collections,
   DelphiAST.Consts;
 
+var
+  fUnitMetrics: TUnitMetrics;
 
 procedure NodeTreeWalker(const Node: TSyntaxNode);
 var
   ChildNode: TSyntaxNode;
-  len: Integer;
-  attr: TPair<TAttributeName, string>;
-  kind: string;
-  methodname: string;
+  cnode: TCompoundSyntaxNode;
 begin
   if Node.Typ = ntInterface then
     exit;
   if Node.Typ = ntMethod then
   begin
-    len := TCompoundSyntaxNode(Node).EndLine - TCompoundSyntaxNode
-      (Node).Line + 1;
-    kind := Node.GetAttribute(anKind);
-    methodname := Node.GetAttribute(anName);
-    writeln(Format('   - %s %s = [%d]', [kind, methodname, len]));
+    cnode := Node as TCompoundSyntaxNode;
+    fUnitMetrics.AddMethod(
+      { } cnode.GetAttribute(anKind),
+      { } cnode.GetAttribute(anName),
+      { } cnode.EndLine - cnode.Line + 1);
     exit;
   end;
   for ChildNode in Node.ChildNodes do
     NodeTreeWalker(ChildNode);
 end;
 
-
-class procedure TAnalyticsGenerator.Build(const Root: TSyntaxNode);
+class function TAnalyticsGenerator.Build(const Root: TSyntaxNode): TUnitMetrics;
 begin
+  Result := TUnitMetrics.Create(Root.GetAttribute(anName));
+  fUnitMetrics := Result;
   NodeTreeWalker(Root);
 end;
 

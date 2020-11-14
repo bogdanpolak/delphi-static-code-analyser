@@ -32,7 +32,7 @@ end;
 
 function TMethodMetrics.ToString: string;
 begin
-  Result := Format('   - %s %s = [%d]', [Kind, FullName, Lenght])
+  Result := Format('%s %s = [%d]', [Kind, FullName, Lenght])
 end;
 
 end.

@@ -21,15 +21,16 @@ procedure ApplicationRun();
 implementation
 
 uses
-  Analytics.Generator;
+  Analytics.Generator,
+  Analytics.UnitMetrics;
 
-function Parse(const FileName: string): string;
+function Parse(const FileName: string): TUnitMetrics;
 var
   syntaxtree: TSyntaxNode;
   Builder: TPasSyntaxTreeBuilder;
   StringStream: TStringStream;
 begin
-  Result := '';
+  Result := nil;
   try
     Builder := TPasSyntaxTreeBuilder.Create;
     try
@@ -41,8 +42,7 @@ begin
         StringStream.Position := 0;
         syntaxtree := Builder.Run(StringStream);
         try
-          TAnalyticsGenerator.Build(syntaxtree);
-          // writeln(TSyntaxTreeWriter.ToXML(syntaxtree,true));
+          Result := TAnalyticsGenerator.Build(syntaxtree);
         finally
           syntaxtree.Free;
         end;
@@ -71,13 +71,22 @@ end;
 
 procedure ApplicationRun();
 var
-  s: string;
   fname: string;
+  unitmetrics: TUnitMetrics;
+  idx: Integer;
 begin
   writeln('DelphiAST Console Writer Demo');
+  writeln('----------------------------------');
   fname := TPath.Combine(GetTestFolder, 'testunit.pas');
-  s := Parse(fname);
-  writeln(s);
+  unitmetrics := Parse(fname);
+  try
+    writeln(fname);
+    for idx := 0 to unitmetrics.MethodsCount-1 do
+      writeln('  - ',unitmetrics.Method[idx].ToString);
+  finally
+    if unitmetrics<>nil then
+      unitmetrics.Free;
+  end;
   readln;
 end;
 
