@@ -24,10 +24,9 @@ procedure NodeTreeWalker(const Node: TSyntaxNode);
 var
   ChildNode: TSyntaxNode;
   len: Integer;
-  methodname: string;
   attr: TPair<TAttributeName, string>;
-  mkind: string;
-  mname: string;
+  kind: string;
+  methodname: string;
 begin
   if Node.Typ = ntInterface then
     exit;
@@ -35,13 +34,9 @@ begin
   begin
     len := TCompoundSyntaxNode(Node).EndLine - TCompoundSyntaxNode
       (Node).Line + 1;
-    for attr in Node.Attributes do
-      if attr.Key = anKind then
-        mkind := attr.Value
-      else if attr.Key = anName then
-        mname := attr.Value;
-    methodname := mkind + ' ' + mname;
-    writeln(Format('   - %s = [%d]', [methodname, len]));
+    kind := Node.GetAttribute(anKind);
+    methodname := Node.GetAttribute(anName);
+    writeln(Format('   - %s %s = [%d]', [kind, methodname, len]));
     exit;
   end;
   for ChildNode in Node.ChildNodes do
