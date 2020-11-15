@@ -23,21 +23,57 @@ uses
 var
   fUnitMetrics: TUnitMetrics;
 
+function CalcMethodComplexity(const aNode: TSyntaxNode): Integer;
+var
+  child: TSyntaxNode;
+  complex: Integer;
+begin
+  Result := 0;
+  if aNode.Typ = ntParameter then
+    exit;
+  case aNode.Typ of
+    ntAssign,
+    ntIf,
+      Exit(aNode.Col);
+    ntAnonymousMethod,
+    ntCall,
+    ntCase,
+    ntElse,
+    ntFor,
+    ntGoto,
+    ntRepeat,
+    ntStatement,
+    ntStatements,
+    ntThen,
+    ntWhile,
+    ntWith:
+      Result := aNode.Col;
+  end;
+  for child in aNode.ChildNodes do
+  begin
+    complex := CalcMethodComplexity(child);
+    if complex>Result then
+      Result := complex;
+  end;
+end;
+
 procedure NodeTreeWalker(const aNode: TSyntaxNode);
 var
   child: TSyntaxNode;
   compound: TCompoundSyntaxNode;
+  complexity: Integer;
 begin
   if aNode.Typ = ntInterface then
     exit;
   if aNode.Typ = ntMethod then
   begin
     compound := aNode as TCompoundSyntaxNode;
+    complexity := CalcMethodComplexity(aNode);
     fUnitMetrics.AddMethod(
       { } aNode.GetAttribute(anKind),
       { } aNode.GetAttribute(anName),
       { } compound.EndLine - compound.Line + 1,
-      { } 0);
+      { } complexity);
     exit;
   end;
   for child in aNode.ChildNodes do
