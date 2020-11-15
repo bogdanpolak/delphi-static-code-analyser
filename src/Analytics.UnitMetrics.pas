@@ -18,7 +18,7 @@ type
     property Name: string read fName;
     function MethodsCount(): Integer;
     procedure AddMethod(const aKind: string; const aFullName: string;
-      aLength: Integer);
+      aLength: Integer; aComplexity: Integer);
     property Method[aIdx: Integer]: TMethodMetrics read GetMethod;
   end;
 
@@ -37,9 +37,9 @@ begin
 end;
 
 procedure TUnitMetrics.AddMethod(const aKind: string; const aFullName: string;
-  aLength: Integer);
+  aLength: Integer; aComplexity: Integer);
 begin
-  fMethods.Add(TMethodMetrics.Create(aKind, aFullName, aLength));
+  fMethods.Add(TMethodMetrics.Create(aKind, aFullName, aLength, aComplexity));
 end;
 
 function TUnitMetrics.GetMethod(aIdx: Integer): TMethodMetrics;

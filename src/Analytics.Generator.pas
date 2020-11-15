@@ -36,7 +36,8 @@ begin
     fUnitMetrics.AddMethod(
       { } aNode.GetAttribute(anKind),
       { } aNode.GetAttribute(anName),
-      { } compound.EndLine - compound.Line + 1);
+      { } compound.EndLine - compound.Line + 1,
+      { } 0);
     exit;
   end;
   for child in aNode.ChildNodes do
