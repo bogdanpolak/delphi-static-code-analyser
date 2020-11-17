@@ -1,4 +1,4 @@
-program ConsoleWriterDemo;
+program DelphiCodeAnalyser;
 
 {$APPTYPE CONSOLE}
 

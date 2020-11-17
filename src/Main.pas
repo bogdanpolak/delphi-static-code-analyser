@@ -43,6 +43,7 @@ begin
         syntaxtree := Builder.Run(StringStream);
         try
           Result := TAnalyticsGenerator.Build(syntaxtree);
+          // writeln(TSyntaxTreeWriter.ToXML(syntaxtree, true));
         finally
           syntaxtree.Free;
         end;
