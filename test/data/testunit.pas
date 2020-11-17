@@ -38,6 +38,42 @@ implementation
 uses
   FileCtrl, IOUtils, DelphiAST, DelphiAST.Classes;
 
+procedure Test01;
+var
+  I: Integer;
+  a: Integer;
+  b: Integer;
+begin
+  for I := 0 to 5 do
+    a := a + I;
+  for i := 0 to 4 do
+  begin
+    b := a + i;
+    a := a - i div 2;
+  end;
+  while a>0 do
+    a := a - 1;
+  while a<10 do
+  begin
+    a := a + 1;
+    b := b - 1;
+  end;
+  if a>0 then
+    a := a - 1
+  else
+    a := a + 1;
+  if a<10 then
+  begin
+    a := a + 1;
+    b := b + 1;
+  end
+  else
+  begin
+    a := a - 1;
+    b := b - 1;
+  end
+end;
+
 procedure TTestForm.btnRunClick(Sender: TObject);
 var
   Path, FileName: string;
