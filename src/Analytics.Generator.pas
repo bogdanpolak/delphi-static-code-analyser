@@ -64,17 +64,18 @@ var
   child: TSyntaxNode;
   compound: TCompoundSyntaxNode;
   complexity: Integer;
+  statements: TCompoundSyntaxNode;
 begin
   if aNode.Typ = ntInterface then
     exit;
   if aNode.Typ = ntMethod then
   begin
-    compound := aNode as TCompoundSyntaxNode;
+    statements := aNode.FindNode(ntStatements) as TCompoundSyntaxNode;
     complexity := CalcMethodComplexity(aNode);
     fUnitMetrics.AddMethod(
       { } aNode.GetAttribute(anKind),
       { } aNode.GetAttribute(anName),
-      { } compound.EndLine - compound.Line - 2,
+      { } statements.EndLine - aNode.Line + 1,
       { } complexity);
     exit;
   end;
