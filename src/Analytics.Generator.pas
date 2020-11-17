@@ -6,6 +6,7 @@ uses
   System.SysUtils,
   System.Classes,
   DelphiAST.Classes,
+  System.Generics.Defaults,
   Analytics.UnitMetrics;
 
 type
@@ -21,73 +22,77 @@ uses
   DelphiAST.Consts;
 
 var
-  fUnitMetrics: TUnitMetrics;
   fLineIndetation: TDictionary<Integer, Integer>;
-
 
 procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
 var
   child: TSyntaxNode;
   indentation: Integer;
 begin
-  if fLineIndetation.TryGetValue(aNode.Line,indentation) then
+  if fLineIndetation.TryGetValue(aNode.Line, indentation) then
   begin
-    if aNode.Col<indentation then
-      fLineIndetation[aNode.Line] := aNode.Col-1;
+    if aNode.Col < indentation then
+      fLineIndetation[aNode.Line] := aNode.Col - 1;
   end
   else
-    fLineIndetation.Add(aNode.Line, aNode.Col-1);
+    fLineIndetation.Add(aNode.Line, aNode.Col - 1);
   for child in aNode.ChildNodes do
     MinIndetationNodeWalker(child);
 end;
 
-function CalcMethodComplexity(const aNode: TSyntaxNode): Integer;
+function CalculateMethodComplexity(const aMethodNode
+  : TCompoundSyntaxNode): Integer;
 var
-  pair: TPair<Integer, Integer>; 
+  statements: TSyntaxNode;
+  current: Integer;
   indetation: Integer;
+  indentations: TArray<Integer>;
 begin
   fLineIndetation := TDictionary<Integer, Integer>.Create();
   try
-    MinIndetationNodeWalker(aNode);
+    statements := aMethodNode.FindNode(ntStatements);
+    MinIndetationNodeWalker(statements);
+    indentations := fLineIndetation.Values.ToArray;
     indetation := 0;
-    for pair in fLineIndetation do
-      if indetation<pair.Value then
-        indetation := pair.Value;
+    for current in indentations do
+      if indetation < current then
+        indetation := current;
     Result := indetation div 2;
   finally
     fLineIndetation.Free;
   end;
 end;
 
-procedure NodeTreeWalker(const aNode: TSyntaxNode);
+function CalculateMethodLength(const aMethodNode: TCompoundSyntaxNode): Integer;
 var
-  child: TSyntaxNode;
-  compound: TCompoundSyntaxNode;
-  complexity: Integer;
   statements: TCompoundSyntaxNode;
 begin
-  if aNode.Typ = ntInterface then
-    exit;
-  if aNode.Typ = ntMethod then
-  begin
-    statements := aNode.FindNode(ntStatements) as TCompoundSyntaxNode;
-    complexity := CalcMethodComplexity(aNode);
-    fUnitMetrics.AddMethod(
-      { } aNode.GetAttribute(anKind),
-      { } aNode.GetAttribute(anName),
-      { } statements.EndLine - aNode.Line + 1,
-      { } complexity);
-    exit;
-  end;
-  for child in aNode.ChildNodes do
-    NodeTreeWalker(child);
+  statements := aMethodNode.FindNode(ntStatements) as TCompoundSyntaxNode;
+  Result := statements.EndLine - aMethodNode.Line + 1;
 end;
 
 class function TAnalyticsGenerator.Build(const Root: TSyntaxNode): TUnitMetrics;
+var
+  unitname: string;
+  implementationNode: TSyntaxNode;
+  child: TSyntaxNode;
+  UnitMetrics: TUnitMetrics;
 begin
-  Result := TUnitMetrics.Create(Root.GetAttribute(anName));
-  fUnitMetrics := Result;
-  NodeTreeWalker(Root);
+  unitname := Root.GetAttribute(anName);
+  UnitMetrics := TUnitMetrics.Create(unitname);
+  // interfaceNode := Root.FindNode(ntInterface);
+  implementationNode := Root.FindNode(ntImplementation);
+  for child in implementationNode.ChildNodes do
+  begin
+    if child.Typ = ntMethod then
+    begin
+      UnitMetrics.AddMethod(child.GetAttribute(anKind),
+        child.GetAttribute(anName),
+        CalculateMethodLength(child as TCompoundSyntaxNode),
+        CalculateMethodComplexity(child as TCompoundSyntaxNode));
+    end;
+  end;
+  Result := unitMetrics;
 end;
 
 end.
