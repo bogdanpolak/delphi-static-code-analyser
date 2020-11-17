@@ -22,38 +22,40 @@ uses
 
 var
   fUnitMetrics: TUnitMetrics;
+  fLineIndetation: TDictionary<Integer, Integer>;
+
+
+procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
+var
+  child: TSyntaxNode;
+  indentation: Integer;
+begin
+  if fLineIndetation.TryGetValue(aNode.Line,indentation) then
+  begin
+    if aNode.Col<indentation then
+      fLineIndetation[aNode.Line] := aNode.Col-1;
+  end
+  else
+    fLineIndetation.Add(aNode.Line, aNode.Col-1);
+  for child in aNode.ChildNodes do
+    MinIndetationNodeWalker(child);
+end;
 
 function CalcMethodComplexity(const aNode: TSyntaxNode): Integer;
 var
-  child: TSyntaxNode;
-  complex: Integer;
+  pair: TPair<Integer, Integer>; 
+  indetation: Integer;
 begin
-  Result := 0;
-  if aNode.Typ = ntParameter then
-    exit;
-  case aNode.Typ of
-    ntAssign,
-    ntIf,
-      Exit(aNode.Col);
-    ntAnonymousMethod,
-    ntCall,
-    ntCase,
-    ntElse,
-    ntFor,
-    ntGoto,
-    ntRepeat,
-    ntStatement,
-    ntStatements,
-    ntThen,
-    ntWhile,
-    ntWith:
-      Result := aNode.Col;
-  end;
-  for child in aNode.ChildNodes do
-  begin
-    complex := CalcMethodComplexity(child);
-    if complex>Result then
-      Result := complex;
+  fLineIndetation := TDictionary<Integer, Integer>.Create();
+  try
+    MinIndetationNodeWalker(aNode);
+    indetation := 0;
+    for pair in fLineIndetation do
+      if indetation<pair.Value then
+        indetation := pair.Value;
+    Result := indetation div 2;
+  finally
+    fLineIndetation.Free;
   end;
 end;
 
@@ -72,7 +74,7 @@ begin
     fUnitMetrics.AddMethod(
       { } aNode.GetAttribute(anKind),
       { } aNode.GetAttribute(anName),
-      { } compound.EndLine - compound.Line + 1,
+      { } compound.EndLine - compound.Line - 2,
       { } complexity);
     exit;
   end;
