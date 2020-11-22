@@ -29,9 +29,10 @@ procedure ApplicationRun();
 var
   fname: string;
 begin
+  fname := TPath.Combine(GetTestFolder, 'testunit.pas');
+  // TAnalyseUnitCommand.Execute(fname, amGenerateXml); readln; exit;
   writeln('DelphiAST - Static Code Analyser');
   writeln('----------------------------------');
-  fname := TPath.Combine(GetTestFolder, 'testunit.pas');
   TAnalyseUnitCommand.Execute(fname);
   readln;
 end;
