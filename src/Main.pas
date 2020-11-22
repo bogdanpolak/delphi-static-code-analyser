@@ -6,22 +6,14 @@ uses
   System.SysUtils,
   System.Classes,
   System.IOUtils,
-  System.Diagnostics,
-  {}
-  StringPool,
-  DelphiAST,
-  DelphiAST.Writer,
-  DelphiAST.Classes,
-  SimpleParser.Lexer.Types,
-  DelphiAST.SimpleParserEx,
-  IncludeHandler;
+  System.Diagnostics;
 
 procedure ApplicationRun();
 
 implementation
 
 uses
-  Analytics.UnitMetrics;
+  Command.AnalyseUnit;
 
 function GetTestFolder(): string;
 begin
@@ -33,74 +25,6 @@ begin
     raise Exception.Create('Can''t find test data folder.');
 end;
 
-function LoadUnit(const FileName: string): TStream;
-var
-  strStream: TStringStream;
-begin
-  strStream := TStringStream.Create;
-  strStream.LoadFromFile(FileName);
-  strStream.Position := 0;
-  Result := strStream;
-end;
-
-function BuildMetrics(aUnitStream: TStream; const aUnitName: string;
-  const aIncludeFolder: string = ''): TUnitMetrics;
-var
-  Builder: TPasSyntaxTreeBuilder;
-  syntaxTree: TSyntaxNode;
-begin
-  Result := TUnitMetrics.Create(aUnitName);
-  Builder := TPasSyntaxTreeBuilder.Create;
-  try
-    if aIncludeFolder <> '' then
-    begin
-      Builder.IncludeHandler := TIncludeHandler.Create(aIncludeFolder);
-    end;
-    try
-      syntaxTree := Builder.Run(aUnitStream);
-      try
-        Result.CalculateMetrics(syntaxTree);
-        // writeln(TSyntaxTreeWriter.ToXML(syntaxTree, true));
-      finally
-        syntaxTree.Free;
-      end;
-    except
-      on E: ESyntaxTreeException do
-      begin
-        writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
-          sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
-        raise;
-      end;
-    end;
-  finally
-    Builder.Free;
-  end
-end;
-
-procedure DisplayMetricsResults(aUnitMetrics: TUnitMetrics);
-var
-  idx: Integer;
-begin
-  writeln(aUnitMetrics.Name);
-  for idx := 0 to aUnitMetrics.MethodsCount - 1 do
-    writeln('  - ', aUnitMetrics.GetMethod(idx).ToString);
-end;
-
-procedure RunUnitAnalyser(const fname: string);
-var
-  metrics: TUnitMetrics;
-  stream: TStream;
-begin
-  stream := LoadUnit(fname);
-  try
-    metrics := BuildMetrics(stream, fname);
-    DisplayMetricsResults(metrics);
-    metrics.Free;
-  finally
-    stream.Free;
-  end;
-end;
-
 procedure ApplicationRun();
 var
   fname: string;
@@ -108,7 +32,7 @@ begin
   writeln('DelphiAST - Static Code Analyser');
   writeln('----------------------------------');
   fname := TPath.Combine(GetTestFolder, 'testunit.pas');
-  RunUnitAnalyser(fname);
+  TAnalyseUnitCommand.Execute(fname);
   readln;
 end;
 

@@ -110,7 +110,6 @@ end;
 
 procedure TUnitMetrics.CalculateMetrics(aRootNode: TSyntaxNode);
 var
-  unitName: string;
   implementationNode: TSyntaxNode;
   child: TSyntaxNode;
 begin

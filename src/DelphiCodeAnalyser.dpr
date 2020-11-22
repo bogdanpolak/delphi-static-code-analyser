@@ -21,7 +21,8 @@ uses
   SimpleParser.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Types.pas',
   IncludeHandler in 'IncludeHandler.pas',
   Analytics.UnitMetrics in 'Analytics.UnitMetrics.pas',
-  Analytics.MethodMetrics in 'Analytics.MethodMetrics.pas';
+  Analytics.MethodMetrics in 'Analytics.MethodMetrics.pas',
+  Command.AnalyseUnit in 'Command.AnalyseUnit.pas';
 
 begin
   try
