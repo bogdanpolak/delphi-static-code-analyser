@@ -15,85 +15,125 @@ uses
   Analytics.UnitMetrics;
 
 type
+  TAnalyserMode = (amGenerateMertics, amGenerateXml);
+
+type
   TAnalyseUnitCommand = class
   private
+    fFileName: string;
+    fStringStream: TStringStream;
+    fUnitMetrics: TUnitMetrics;
+    fTreeBuilder: TPasSyntaxTreeBuilder;
+    procedure LoadUnit();
+    procedure CalculateMetrics();
+    procedure DisplayMetricsResults;
+    procedure GenerateXmlTree;
   public
-    class procedure Execute(const aFileName: string); static;
+    constructor Create(const aUnitName: string);
+    destructor Destroy; override;
+    class procedure Execute(const aFileName: string;
+      aAnalyserMode: TAnalyserMode = amGenerateMertics); static;
   end;
 
 implementation
 
-function LoadUnit(const FileName: string): TStream;
-var
-  strStream: TStringStream;
+constructor TAnalyseUnitCommand.Create(const aUnitName: string);
 begin
-  strStream := TStringStream.Create;
-  strStream.LoadFromFile(FileName);
-  strStream.Position := 0;
-  Result := strStream;
-end;
-
-function BuildMetrics(aUnitStream: TStream; const aUnitName: string;
-  const aIncludeFolder: string = ''): TUnitMetrics;
-var
-  Builder: TPasSyntaxTreeBuilder;
-  syntaxTree: TSyntaxNode;
-begin
-  Result := TUnitMetrics.Create(aUnitName);
-  Builder := TPasSyntaxTreeBuilder.Create;
-  try
+  fStringStream := TStringStream.Create;
+  fUnitMetrics := TUnitMetrics.Create(aUnitName);
+  fFileName := aUnitName;
+  fTreeBuilder := TPasSyntaxTreeBuilder.Create;
+  {
     if aIncludeFolder <> '' then
     begin
-      Builder.IncludeHandler := TIncludeHandler.Create(aIncludeFolder);
+    fTreeBuilder.IncludeHandler := TIncludeHandler.Create(aIncludeFolder);
     end;
-    try
-      syntaxTree := Builder.Run(aUnitStream);
-      try
-        Result.CalculateMetrics(syntaxTree);
-        // writeln(TSyntaxTreeWriter.ToXML(syntaxTree, true));
-      finally
-        syntaxTree.Free;
-      end;
-    except
-      on E: ESyntaxTreeException do
-      begin
-        writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
-          sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
-        raise;
-      end;
-    end;
-  finally
-    Builder.Free;
-  end
+  }
 end;
 
-procedure DisplayMetricsResults(aUnitMetrics: TUnitMetrics);
-var
-  idx: Integer;
+destructor TAnalyseUnitCommand.Destroy;
 begin
-  writeln(aUnitMetrics.Name);
-  for idx := 0 to aUnitMetrics.MethodsCount - 1 do
-    writeln('  - ', aUnitMetrics.GetMethod(idx).ToString);
+  fTreeBuilder.Free;
+  fStringStream.Free;
+  fUnitMetrics.Free;
+  inherited;
 end;
 
-procedure RunUnitAnalyser(const aFileName: string);
-var
-  metrics: TUnitMetrics;
-  stream: TStream;
+procedure TAnalyseUnitCommand.LoadUnit();
 begin
-  stream := LoadUnit(aFileName);
+  fStringStream.Clear;
+  fStringStream.LoadFromFile(fFileName);
+  fStringStream.Position := 0;
+end;
+
+procedure TAnalyseUnitCommand.CalculateMetrics();
+var
+  syntaxTree: TSyntaxNode;
+begin
   try
-    metrics := BuildMetrics(stream, aFileName);
-    DisplayMetricsResults(metrics);
-    metrics.Free;
-  finally
-    stream.Free;
+    syntaxTree := fTreeBuilder.Run(fStringStream);
+    try
+      fUnitMetrics.CalculateMetrics(syntaxTree);
+      // writeln(TSyntaxTreeWriter.ToXML(syntaxTree, true));
+    finally
+      syntaxTree.Free;
+    end;
+  except
+    on E: ESyntaxTreeException do
+    begin
+      writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
+        sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
+      raise;
+    end;
   end;
 end;
 
-class procedure TAnalyseUnitCommand.Execute(const aFileName: string);
+procedure TAnalyseUnitCommand.GenerateXmlTree();
+var
+  syntaxTree: TSyntaxNode;
 begin
-  RunUnitAnalyser(aFileName);
+  try
+    syntaxTree := fTreeBuilder.Run(fStringStream);
+    writeln(TSyntaxTreeWriter.ToXML(syntaxTree, true));
+    syntaxTree.Free;
+  except
+    on E: ESyntaxTreeException do
+    begin
+      writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
+        sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
+    end;
+  end;
+end;
+
+procedure TAnalyseUnitCommand.DisplayMetricsResults();
+var
+  idx: Integer;
+begin
+  writeln(fUnitMetrics.Name);
+  for idx := 0 to fUnitMetrics.MethodsCount - 1 do
+    writeln('  - ', fUnitMetrics.GetMethod(idx).ToString);
+end;
+
+class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
+  aAnalyserMode: TAnalyserMode = amGenerateMertics);
+var
+  cmdAnalyseUnit: TAnalyseUnitCommand;
+begin
+  cmdAnalyseUnit := TAnalyseUnitCommand.Create(aFileName);
+  try
+    cmdAnalyseUnit.LoadUnit();
+    case aAnalyserMode of
+      amGenerateMertics:
+        begin
+          cmdAnalyseUnit.CalculateMetrics();
+          cmdAnalyseUnit.DisplayMetricsResults();
+        end;
+      amGenerateXml:
+          cmdAnalyseUnit.GenerateXmlTree();
+    end;
+  finally
+    cmdAnalyseUnit.Free;
+  end;
 end;
 
 end.
