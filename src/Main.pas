@@ -21,7 +21,6 @@ procedure ApplicationRun();
 implementation
 
 uses
-  Analytics.Generator,
   Analytics.UnitMetrics;
 
 function GetTestFolder(): string;
@@ -44,12 +43,13 @@ begin
   Result := strStream;
 end;
 
-function BuildMetrics(aUnitStream: TStream; const aIncludeFolder: string = '')
-  : TUnitMetrics;
+function BuildMetrics(aUnitStream: TStream; const aUnitName: string;
+  const aIncludeFolder: string = ''): TUnitMetrics;
 var
   Builder: TPasSyntaxTreeBuilder;
   syntaxTree: TSyntaxNode;
 begin
+  Result := TUnitMetrics.Create(aUnitName);
   Builder := TPasSyntaxTreeBuilder.Create;
   try
     if aIncludeFolder <> '' then
@@ -59,7 +59,7 @@ begin
     try
       syntaxTree := Builder.Run(aUnitStream);
       try
-        Result := TAnalyticsGenerator.Build(syntaxTree);
+        Result.CalculateMetrics(syntaxTree);
         // writeln(TSyntaxTreeWriter.ToXML(syntaxTree, true));
       finally
         syntaxTree.Free;
@@ -83,7 +83,7 @@ var
 begin
   writeln(aUnitMetrics.Name);
   for idx := 0 to aUnitMetrics.MethodsCount - 1 do
-    writeln('  - ', aUnitMetrics.Method[idx].ToString);
+    writeln('  - ', aUnitMetrics.GetMethod(idx).ToString);
 end;
 
 procedure RunUnitAnalyser(const fname: string);
@@ -93,7 +93,7 @@ var
 begin
   stream := LoadUnit(fname);
   try
-    metrics := BuildMetrics(stream);
+    metrics := BuildMetrics(stream, fname);
     DisplayMetricsResults(metrics);
     metrics.Free;
   finally
