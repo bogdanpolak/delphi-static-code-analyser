@@ -22,7 +22,8 @@ uses
   IncludeHandler in 'IncludeHandler.pas',
   Analytics.UnitMetrics in 'Analytics.UnitMetrics.pas',
   Analytics.MethodMetrics in 'Analytics.MethodMetrics.pas',
-  Command.AnalyseUnit in 'Command.AnalyseUnit.pas';
+  Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
+  Command.AnalyseFolder in 'Command.AnalyseFolder.pas';
 
 begin
   try

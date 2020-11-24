@@ -13,7 +13,8 @@ procedure ApplicationRun();
 implementation
 
 uses
-  Command.AnalyseUnit;
+  Command.AnalyseUnit,
+  Command.AnalyseFolder;
 
 function GetTestFolder(): string;
 begin
@@ -29,11 +30,14 @@ procedure ApplicationRun();
 var
   fname: string;
 begin
+  TAnalyseFolderCommand.Execute(GetTestFolder+'mORMot');
+  {
   fname := TPath.Combine(GetTestFolder, 'testunit.pas');
   // TAnalyseUnitCommand.Execute(fname, amGenerateXml); readln; exit;
   writeln('DelphiAST - Static Code Analyser');
   writeln('----------------------------------');
   TAnalyseUnitCommand.Execute(fname);
+  }
   readln;
 end;
 
