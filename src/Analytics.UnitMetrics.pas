@@ -57,15 +57,18 @@ var
   child: TSyntaxNode;
   indentation: Integer;
 begin
-  if fLineIndetation.TryGetValue(aNode.Line, indentation) then
+  if aNode <> nil then
   begin
-    if aNode.Col < indentation then
-      fLineIndetation[aNode.Line] := aNode.Col - 1;
-  end
-  else
-    fLineIndetation.Add(aNode.Line, aNode.Col - 1);
-  for child in aNode.ChildNodes do
-    MinIndetationNodeWalker(child);
+    if fLineIndetation.TryGetValue(aNode.Line, indentation) then
+    begin
+      if aNode.Col < indentation then
+        fLineIndetation[aNode.Line] := aNode.Col - 1;
+    end
+    else
+      fLineIndetation.Add(aNode.Line, aNode.Col - 1);
+    for child in aNode.ChildNodes do
+      MinIndetationNodeWalker(child);
+  end;
 end;
 
 function CalculateMethodComplexity(const aMethodNode
@@ -96,7 +99,10 @@ var
   statements: TCompoundSyntaxNode;
 begin
   statements := aMethodNode.FindNode(ntStatements) as TCompoundSyntaxNode;
-  Result := statements.EndLine - aMethodNode.Line + 1;
+  if statements <> nil then
+    Result := statements.EndLine - aMethodNode.Line + 1
+  else
+    Result := 1;
 end;
 
 procedure TUnitMetrics.AddMethod(aMethodNode: TCompoundSyntaxNode);
