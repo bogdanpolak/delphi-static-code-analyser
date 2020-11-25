@@ -71,7 +71,7 @@ begin
   end;
 end;
 
-function CalculateMethodComplexity(const aMethodNode
+function CalculateMethodIndentation(const aMethodNode
   : TCompoundSyntaxNode): Integer;
 var
   statements: TSyntaxNode;
@@ -111,7 +111,7 @@ begin
     { } aMethodNode.GetAttribute(anKind),
     { } aMethodNode.GetAttribute(anName),
     { } CalculateMethodLength(aMethodNode),
-    { } CalculateMethodComplexity(aMethodNode)));
+    { } CalculateMethodIndentation(aMethodNode)));
 end;
 
 procedure TUnitMetrics.CalculateMetrics(aRootNode: TSyntaxNode);

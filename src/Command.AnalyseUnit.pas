@@ -15,7 +15,7 @@ uses
   Analytics.UnitMetrics;
 
 type
-  TAnalyserMode = (amGenerateMertics, amGenerateXml);
+  TCodeAnalyserMode = (camGenerateMetrics, camGenerateXml);
 
 type
   TAnalyseUnitCommand = class
@@ -32,7 +32,7 @@ type
     constructor Create(const aUnitName: string);
     destructor Destroy; override;
     class procedure Execute(const aFileName: string;
-      aAnalyserMode: TAnalyserMode = amGenerateMertics); static;
+      aCodeAnalyserMode: TCodeAnalyserMode = camGenerateMetrics); static;
   end;
 
 implementation
@@ -115,20 +115,20 @@ begin
 end;
 
 class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
-  aAnalyserMode: TAnalyserMode = amGenerateMertics);
+      aCodeAnalyserMode: TCodeAnalyserMode = camGenerateMetrics);
 var
   cmdAnalyseUnit: TAnalyseUnitCommand;
 begin
   cmdAnalyseUnit := TAnalyseUnitCommand.Create(aFileName);
   try
     cmdAnalyseUnit.LoadUnit();
-    case aAnalyserMode of
-      amGenerateMertics:
+    case aCodeAnalyserMode of
+      camGenerateMetrics:
         begin
           cmdAnalyseUnit.CalculateMetrics();
           cmdAnalyseUnit.DisplayMetricsResults();
         end;
-      amGenerateXml:
+      camGenerateXml:
           cmdAnalyseUnit.GenerateXmlTree();
     end;
   finally

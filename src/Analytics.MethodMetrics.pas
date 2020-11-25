@@ -11,32 +11,32 @@ type
     fKind: string;
     fFullName: string;
     fLenght: Integer;
-    fComplexity: Integer;
+    fIndentationLevel: Integer;
   public
     constructor Create(const aKind: string; const aFullName: string;
-      aLength: Integer; aComplexity: Integer);
+      aLength: Integer; aIndentationLevel: Integer);
     function ToString(): string; override;
     property Kind: string read fKind;
     property FullName: string read fFullName;
     property Lenght: Integer read fLenght;
-    property Complexity: Integer read fComplexity;
+    property IndentationLevel: Integer read fIndentationLevel;
   end;
 
 implementation
 
 constructor TMethodMetrics.Create(const aKind: string; const aFullName: string;
-  aLength: Integer; aComplexity: Integer);
+      aLength: Integer; aIndentationLevel: Integer);
 begin
   self.fKind := aKind;
   self.fFullName := aFullName;
   self.fLenght := aLength;
-  self.fComplexity := aComplexity;
+  self.fIndentationLevel := aIndentationLevel;
 end;
 
 function TMethodMetrics.ToString: string;
 begin
-  Result := Format('%s %s  =  [Len: %d] [Complex: %d]',
-    [Kind, FullName, Lenght, fComplexity])
+  Result := Format('%s %s  =  [Lenght: %d] [Level: %d]',
+    [Kind, FullName, Lenght, fIndentationLevel])
 end;
 
 end.

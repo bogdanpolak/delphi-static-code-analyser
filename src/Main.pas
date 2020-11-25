@@ -8,6 +8,12 @@ uses
   System.IOUtils,
   System.Diagnostics;
 
+type
+  TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml);
+
+const
+  ApplicationMode: TApplicationMode = amFolderAnalysis;
+
 procedure ApplicationRun();
 
 implementation
@@ -26,19 +32,49 @@ begin
     raise Exception.Create('Can''t find test data folder.');
 end;
 
-procedure ApplicationRun();
+function IsDeveloperMode(): boolean;
 var
-  fname: string;
+  dprFileName: string;
 begin
-  TAnalyseFolderCommand.Execute(GetTestFolder+'mORMot');
-  {
-  fname := TPath.Combine(GetTestFolder, 'testunit.pas');
-  // TAnalyseUnitCommand.Execute(fname, amGenerateXml); readln; exit;
+  dprFileName :=  ChangeFileExt(ExtractFileName(ParamStr(0)),'.dpr');
+  Result := FileExists('..\..\'+dprFileName) or FileExists(dprFileName);
+end;
+
+function GetSampleFilePath(): string;
+begin
+  Result := TPath.Combine(GetTestFolder, 'testunit.pas');
+end;
+
+procedure ConsoleApplicationHeader();
+begin
   writeln('DelphiAST - Static Code Analyser');
   writeln('----------------------------------');
-  TAnalyseUnitCommand.Execute(fname);
-  }
-  readln;
+end;
+
+procedure RunAnalysisOnFolder();
+begin
+  ConsoleApplicationHeader();
+  TAnalyseFolderCommand.Execute(GetTestFolder + 'mORMot');
+end;
+
+procedure RunAnalysisOnFile();
+begin
+  ConsoleApplicationHeader();
+  TAnalyseUnitCommand.Execute(GetSampleFilePath());
+end;
+
+procedure ApplicationRun();
+begin
+  case ApplicationMode of
+    amFolderAnalysis:
+      RunAnalysisOnFolder();
+    amFileAnalysis:
+      RunAnalysisOnFile();
+    amGenerateXml:
+      TAnalyseUnitCommand.Execute(GetSampleFilePath(), camGenerateXml);
+  end;
+  if IsDeveloperMode then
+    readln;
 end;
 
 end.
