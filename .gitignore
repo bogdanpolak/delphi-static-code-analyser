@@ -105,3 +105,5 @@ TestInsightSettings.ini
 src-concept-helpers
 *Icon.ico
 dunitx-results.xml
+test/data/mORMot
+src/Win32

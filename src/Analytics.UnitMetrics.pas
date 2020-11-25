@@ -6,7 +6,8 @@ uses
   System.Generics.Collections,
   DelphiAST.Classes,
   DelphiAST.Consts,
-  Analytics.MethodMetrics;
+  Analytics.MethodMetrics,
+  Utils.IntegerArray;
 
 type
   TUnitMetrics = class
@@ -57,35 +58,41 @@ var
   child: TSyntaxNode;
   indentation: Integer;
 begin
-  if fLineIndetation.TryGetValue(aNode.Line, indentation) then
+  if aNode <> nil then
   begin
-    if aNode.Col < indentation then
-      fLineIndetation[aNode.Line] := aNode.Col - 1;
-  end
-  else
-    fLineIndetation.Add(aNode.Line, aNode.Col - 1);
-  for child in aNode.ChildNodes do
-    MinIndetationNodeWalker(child);
+    if fLineIndetation.TryGetValue(aNode.Line, indentation) then
+    begin
+      if aNode.Col < indentation then
+        fLineIndetation[aNode.Line] := aNode.Col - 1;
+    end
+    else
+      fLineIndetation.Add(aNode.Line, aNode.Col - 1);
+    for child in aNode.ChildNodes do
+      MinIndetationNodeWalker(child);
+  end;
 end;
 
-function CalculateMethodComplexity(const aMethodNode
+function CalculateMethodIndentation(const aMethodNode
   : TCompoundSyntaxNode): Integer;
 var
   statements: TSyntaxNode;
-  current: Integer;
-  indetation: Integer;
-  indentations: TArray<Integer>;
+  indentations: TIntegerArray;
+  step: Integer;
 begin
   fLineIndetation := TDictionary<Integer, Integer>.Create();
   try
     statements := aMethodNode.FindNode(ntStatements);
     MinIndetationNodeWalker(statements);
-    indentations := fLineIndetation.Values.ToArray;
-    indetation := 0;
-    for current in indentations do
-      if indetation < current then
-        indetation := current;
-    Result := indetation div 2;
+    indentations := fLineIndetation.Values.ToArray.GetDistinctArray();
+    if Length(indentations)<2 then
+      Exit(0);
+    if Length(indentations)>8 then
+    begin
+      step := indentations[1] - indentations[0];
+      Result := (indentations[High(indentations)] - indentations[1]) div step;
+    end;
+    step := indentations[1] - indentations[0];
+    Result := (indentations[High(indentations)] - indentations[1]) div step;
   finally
     fLineIndetation.Free;
   end;
@@ -96,7 +103,10 @@ var
   statements: TCompoundSyntaxNode;
 begin
   statements := aMethodNode.FindNode(ntStatements) as TCompoundSyntaxNode;
-  Result := statements.EndLine - aMethodNode.Line + 1;
+  if statements <> nil then
+    Result := statements.EndLine - aMethodNode.Line + 1
+  else
+    Result := 1;
 end;
 
 procedure TUnitMetrics.AddMethod(aMethodNode: TCompoundSyntaxNode);
@@ -105,7 +115,7 @@ begin
     { } aMethodNode.GetAttribute(anKind),
     { } aMethodNode.GetAttribute(anName),
     { } CalculateMethodLength(aMethodNode),
-    { } CalculateMethodComplexity(aMethodNode)));
+    { } CalculateMethodIndentation(aMethodNode)));
 end;
 
 procedure TUnitMetrics.CalculateMetrics(aRootNode: TSyntaxNode);
