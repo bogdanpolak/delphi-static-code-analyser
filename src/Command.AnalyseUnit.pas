@@ -15,9 +15,6 @@ uses
   Analytics.UnitMetrics;
 
 type
-  TCodeAnalyserMode = (camGenerateMetrics, camGenerateXml);
-
-type
   TAnalyseUnitCommand = class
   private
     fFileName: string;
@@ -31,8 +28,8 @@ type
   public
     constructor Create(const aUnitName: string);
     destructor Destroy; override;
-    class procedure Execute(const aFileName: string;
-      aCodeAnalyserMode: TCodeAnalyserMode = camGenerateMetrics); static;
+    class procedure Execute(const aFileName: string); static;
+    class procedure Execute_GenerateXML(const aFileName: string); static;
   end;
 
 implementation
@@ -74,7 +71,6 @@ begin
     syntaxTree := fTreeBuilder.Run(fStringStream);
     try
       fUnitMetrics.CalculateMetrics(syntaxTree);
-      // writeln(TSyntaxTreeWriter.ToXML(syntaxTree, true));
     finally
       syntaxTree.Free;
     end;
@@ -114,23 +110,29 @@ begin
     writeln('  - ', fUnitMetrics.GetMethod(idx).ToString);
 end;
 
-class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
-      aCodeAnalyserMode: TCodeAnalyserMode = camGenerateMetrics);
+class procedure TAnalyseUnitCommand.Execute(const aFileName: string);
 var
   cmdAnalyseUnit: TAnalyseUnitCommand;
 begin
   cmdAnalyseUnit := TAnalyseUnitCommand.Create(aFileName);
   try
     cmdAnalyseUnit.LoadUnit();
-    case aCodeAnalyserMode of
-      camGenerateMetrics:
-        begin
-          cmdAnalyseUnit.CalculateMetrics();
-          cmdAnalyseUnit.DisplayMetricsResults();
-        end;
-      camGenerateXml:
-          cmdAnalyseUnit.GenerateXmlTree();
-    end;
+    cmdAnalyseUnit.CalculateMetrics();
+    cmdAnalyseUnit.DisplayMetricsResults();
+  finally
+    cmdAnalyseUnit.Free;
+  end;
+end;
+
+class procedure TAnalyseUnitCommand.Execute_GenerateXML(
+  const aFileName: string);
+var
+  cmdAnalyseUnit: TAnalyseUnitCommand;
+begin
+  cmdAnalyseUnit := TAnalyseUnitCommand.Create(aFileName);
+  try
+    cmdAnalyseUnit.LoadUnit();
+    cmdAnalyseUnit.GenerateXmlTree();
   finally
     cmdAnalyseUnit.Free;
   end;

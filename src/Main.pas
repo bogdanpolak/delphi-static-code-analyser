@@ -91,28 +91,23 @@ begin
   writeln('----------------------------------');
 end;
 
-procedure RunAnalysisOnFolder();
-begin
-  ConsoleApplicationHeader();
-  TAnalyseFolderCommand.Execute(TPath.Combine(GetTestFolder, 'mORMot'));
-end;
-
-procedure RunAnalysisOnFile();
-begin
-  ConsoleApplicationHeader();
-  TAnalyseUnitCommand.Execute(GetSampleFilePath());
-end;
-
 procedure ApplicationRun();
 begin
   ReadConfiguration();
   case ApplicationMode of
     amFolderAnalysis:
-      RunAnalysisOnFolder();
+      begin
+        ConsoleApplicationHeader();
+        TAnalyseFolderCommand.Execute(TPath.Combine(GetTestFolder,
+          AppConfiguration.TestSubFolder));
+      end;
     amFileAnalysis:
-      RunAnalysisOnFile();
+      begin
+        ConsoleApplicationHeader();
+        TAnalyseUnitCommand.Execute(GetSampleFilePath());
+      end;
     amGenerateXml:
-      TAnalyseUnitCommand.Execute(GetSampleFilePath(), camGenerateXml);
+      TAnalyseUnitCommand.Execute_GenerateXML(GetSampleFilePath());
   end;
   if IsDeveloperMode then
     readln;
