@@ -30,7 +30,7 @@ type
   TAppConfiguration = record
     DataFolder: string;
     TestFile: string;
-    TestFolder: string;
+    TestSubFolder: string;
   end;
 
 var
@@ -40,7 +40,7 @@ function GetConfigValue(config: TJSONObject; const aKeyName: string): string;
 var
   value: string;
 begin
-  if config.TryGetValue<string>('dataFolder', value) then
+  if config.TryGetValue<string>(aKeyName, value) then
     Result := value
   else
     raise EAssertionFailed.Create
@@ -57,7 +57,7 @@ begin
     as TJSONObject;
   AppConfiguration.DataFolder := GetConfigValue(jsAppConfig, 'dataFolder');
   AppConfiguration.TestFile := GetConfigValue(jsAppConfig, 'testFile');
-  AppConfiguration.TestFolder := GetConfigValue(jsAppConfig, 'testSubFolder');
+  AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig, 'testSubFolder');
 end;
 
 function GetTestFolder(): string;
@@ -82,7 +82,7 @@ end;
 
 function GetSampleFilePath(): string;
 begin
-  Result := TPath.Combine(GetTestFolder, 'testunit.pas');
+  Result := TPath.Combine(GetTestFolder, AppConfiguration.TestFile);
 end;
 
 procedure ConsoleApplicationHeader();
