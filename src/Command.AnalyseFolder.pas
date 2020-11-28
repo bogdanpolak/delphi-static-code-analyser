@@ -31,7 +31,7 @@ begin
       TSearchOption.soAllDirectories);
     for fname in files do
     begin
-      TAnalyseUnitCommand.Execute(fname, aDisplayLevelHigherThan);
+      TAnalyseUnitCommand.Execute_CodeAnalysis(fname, aDisplayLevelHigherThan);
     end;
   end
 end;

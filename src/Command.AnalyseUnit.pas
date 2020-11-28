@@ -20,7 +20,7 @@ type
   private
     class function GenerateXml(const aStream: TStream): string; static;
   public
-    class procedure Execute(const aFileName: string;
+    class procedure Execute_CodeAnalysis(const aFileName: string;
       aDisplayLevelHigherThan: Integer = 0); static;
     class procedure Execute_GenerateXML(const aFileName: string); static;
   end;
@@ -53,25 +53,34 @@ begin
   end;
 end;
 
-class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
-  aDisplayLevelHigherThan: Integer = 0);
+class procedure TAnalyseUnitCommand.Execute_CodeAnalysis(const aFileName
+  : string; aDisplayLevelHigherThan: Integer = 0);
 var
-  unitMetrics: TUnitMetrics;
+  UnitMetrics: TUnitMetrics;
   idx: Integer;
   MethodMetrics: TMethodMetrics;
 begin
-  unitMetrics := TUnitMetrics.Create(aFileName);
+  UnitMetrics := TUnitMetrics.Create(aFileName);
   try
-    TUnitCalculator.Calculate(UnitMetrics);
-    writeln(unitMetrics.Name);
-    for idx := 0 to unitMetrics.MethodsCount - 1 do
-    begin
-      MethodMetrics := unitMetrics.GetMethod(idx);
-      if MethodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
-        writeln('  - ', MethodMetrics.ToString);
+    try
+      TUnitCalculator.Calculate(UnitMetrics);
+      writeln(UnitMetrics.Name);
+      for idx := 0 to UnitMetrics.MethodsCount - 1 do
+      begin
+        MethodMetrics := UnitMetrics.GetMethod(idx);
+        if MethodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
+          writeln('  - ', MethodMetrics.ToString);
+      end;
+    except
+      on E: ESyntaxTreeException do
+      begin
+        writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
+          sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
+        raise;
+      end;
     end;
   finally
-    unitMetrics.Free;
+    UnitMetrics.Free;
   end;
 end;
 
@@ -81,7 +90,7 @@ var
   stringStream: TStringStream;
   text: string;
 begin
-  stringStream:= TStringStream.Create;
+  stringStream := TStringStream.Create;
   try
     stringStream.LoadFromFile(aFileName);
     stringStream.Position := 0;

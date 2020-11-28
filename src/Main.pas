@@ -113,8 +113,9 @@ begin
     amFileAnalysis:
       begin
         ConsoleApplicationHeader();
-        // TAnalyseUnitCommand.Execute(GetSampleFilePath('testunit.pas'));
-        TAnalyseUnitCommand.Execute(GetSampleFilePath('test01.pas'));
+        // TAnalyseUnitCommand.Execute_CodeAnalysis(GetSampleFilePath('testunit.pas'));
+        TAnalyseUnitCommand.Execute_CodeAnalysis
+          (GetSampleFilePath('test01.pas'));
       end;
     amGenerateXml:
       TAnalyseUnitCommand.Execute_GenerateXML
