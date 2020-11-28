@@ -72,16 +72,24 @@ begin
   end;
 end;
 
-function CalculateMethodIndentations(const aMethodNode: TCompoundSyntaxNode)
-  : TIntegerArray;
+function CalculateMethodMaxIndent(const aMethodNode
+  : TCompoundSyntaxNode): Integer;
 var
   statements: TSyntaxNode;
+  step: Integer;
+  indentations: TIntegerArray;
 begin
+  Result := 0;
   fLineIndetation := TDictionary<Integer, Integer>.Create();
   try
     statements := aMethodNode.FindNode(ntStatements);
     MinIndetationNodeWalker(statements);
-    Result := fLineIndetation.Values.ToArray.GetDistinctArray();
+    indentations := fLineIndetation.Values.ToArray.GetDistinctArray();
+    if Length(indentations) >= 2 then
+    begin
+      step := indentations[1] - indentations[0];
+      Result := (indentations[High(indentations)] - indentations[0]) div step;
+    end;
   finally
     fLineIndetation.Free;
   end;
@@ -110,7 +118,7 @@ begin
   with methodMetics do
   begin
     SetLenght(CalculateMethodLength(aMethodNode));
-    SetMaxIndentation(CalculateMethodIndentations(aMethodNode));
+    SetMaxIndentation(CalculateMethodMaxIndent(aMethodNode));
   end;
   fMethods.Add(methodMetics);
 end;
