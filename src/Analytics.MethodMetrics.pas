@@ -46,7 +46,7 @@ begin
   if Length(aIndentations) >= 2 then
   begin
     step := aIndentations[1] - aIndentations[0];
-    level := (aIndentations[High(aIndentations)] - aIndentations[1]) div step;
+    level := (aIndentations[High(aIndentations)] - aIndentations[0]) div step;
   end;
   self.fIndentationLevel := level;
 end;
