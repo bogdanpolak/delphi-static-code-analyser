@@ -22,10 +22,10 @@ uses
   IncludeHandler in 'IncludeHandler.pas',
   Model.MethodMetrics in 'Model\Model.MethodMetrics.pas',
   Model.UnitMetrics in 'Model\Model.UnitMetrics.pas',
+  Model.MetricsCalculator in 'Model\Model.MetricsCalculator.pas',
   Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
   Command.AnalyseFolder in 'Command.AnalyseFolder.pas',
-  Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas',
-  Model.UnitCalculator in 'Model\Model.UnitCalculator.pas';
+  Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas';
 
 begin
   try

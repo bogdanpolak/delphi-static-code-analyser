@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses Model.UnitCalculator;
+uses Model.MetricsCalculator;
 
 class function TAnalyseUnitCommand.GenerateXml(const aStream: TStream): string;
 var
