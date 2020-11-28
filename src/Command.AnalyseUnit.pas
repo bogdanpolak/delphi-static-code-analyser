@@ -18,8 +18,6 @@ uses
 type
   TAnalyseUnitCommand = class
   private
-    class procedure DisplayMetricsResults(aUnitMetrics: TUnitMetrics;
-      aMinLevel: Integer); static;
     class function GenerateXml(const aStream: TStream): string; static;
   public
     class procedure Execute(const aFileName: string;
@@ -55,32 +53,25 @@ begin
   end;
 end;
 
-class procedure TAnalyseUnitCommand.DisplayMetricsResults
-  (aUnitMetrics: TUnitMetrics; aMinLevel: Integer);
-var
-  idx: Integer;
-  MethodMetrics: TMethodMetrics;
-begin
-  writeln(aUnitMetrics.Name);
-  for idx := 0 to aUnitMetrics.MethodsCount - 1 do
-  begin
-    MethodMetrics := aUnitMetrics.GetMethod(idx);
-    if MethodMetrics.IndentationLevel >= aMinLevel then
-      writeln('  - ', MethodMetrics.ToString);
-  end;
-end;
-
 class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
   aDisplayLevelHigherThan: Integer = 0);
 var
-  UnitMetrics: TUnitMetrics;
+  unitMetrics: TUnitMetrics;
+  idx: Integer;
+  MethodMetrics: TMethodMetrics;
 begin
-  UnitMetrics := TUnitMetrics.Create(aFileName);
+  unitMetrics := TUnitMetrics.Create(aFileName);
   try
     TUnitCalculator.Calculate(UnitMetrics);
-    DisplayMetricsResults(UnitMetrics, aDisplayLevelHigherThan);
+    writeln(unitMetrics.Name);
+    for idx := 0 to unitMetrics.MethodsCount - 1 do
+    begin
+      MethodMetrics := unitMetrics.GetMethod(idx);
+      if MethodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
+        writeln('  - ', MethodMetrics.ToString);
+    end;
   finally
-    UnitMetrics.Free;
+    unitMetrics.Free;
   end;
 end;
 
