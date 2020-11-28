@@ -1,4 +1,4 @@
-unit Analytics.UnitMetrics;
+unit Model.UnitMetrics;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   System.Generics.Collections,
   DelphiAST.Classes,
   DelphiAST.Consts,
-  Analytics.MethodMetrics,
+  Model.MethodMetrics,
   Utils.IntegerArray;
 
 type

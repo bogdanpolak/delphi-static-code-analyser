@@ -12,7 +12,7 @@ uses
   DelphiAST.SimpleParserEx,
   IncludeHandler,
   {}
-  Analytics.UnitMetrics;
+  Model.UnitMetrics;
 
 type
   TAnalyseUnitCommand = class
