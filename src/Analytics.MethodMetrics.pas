@@ -15,8 +15,8 @@ type
     fIndentationLevel: Integer;
   public
     constructor Create(const aKind: string; const aFullName: string);
-    function WithMethodLenght(aLength: Integer): TMethodMetrics;
-    function WithMethodIndentations(const aIndentations: TIntegerArray): TMethodMetrics;
+    procedure SetLenght(aLength: Integer);
+    procedure SetMaxIndentation(const aIndentations: TIntegerArray);
     function ToString(): string; override;
     property Kind: string read fKind;
     property FullName: string read fFullName;
@@ -32,14 +32,12 @@ begin
   self.fFullName := aFullName;
 end;
 
-function TMethodMetrics.WithMethodLenght(aLength: Integer): TMethodMetrics;
+procedure TMethodMetrics.SetLenght(aLength: Integer);
 begin
   self.fLenght := aLength;
-  Result := self;
 end;
 
-function TMethodMetrics.WithMethodIndentations(
-  const aIndentations: TIntegerArray): TMethodMetrics;
+procedure TMethodMetrics.SetMaxIndentation(const aIndentations: TIntegerArray);
 var
   step: Integer;
   level: Integer;
@@ -51,7 +49,6 @@ begin
     level := (aIndentations[High(aIndentations)] - aIndentations[1]) div step;
   end;
   self.fIndentationLevel := level;
-  Result := self;
 end;
 
 function TMethodMetrics.ToString: string;

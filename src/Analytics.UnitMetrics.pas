@@ -72,7 +72,7 @@ begin
   end;
 end;
 
-function CalculateMethodIndentation(const aMethodNode: TCompoundSyntaxNode)
+function CalculateMethodIndentations(const aMethodNode: TCompoundSyntaxNode)
   : TIntegerArray;
 var
   statements: TSyntaxNode;
@@ -102,17 +102,16 @@ procedure TUnitMetrics.AddMethod(aMethodNode: TCompoundSyntaxNode);
 var
   methodKind: string;
   methodName: string;
-  methodLength: Integer;
-  methodIndentations: TIntegerArray;
   methodMetics: TMethodMetrics;
 begin
   methodKind := aMethodNode.GetAttribute(anKind);
   methodName := aMethodNode.GetAttribute(anName);
-  methodLength := CalculateMethodLength(aMethodNode);
-  methodIndentations := CalculateMethodIndentation(aMethodNode);
-  methodMetics := TMethodMetrics.Create(methodKind, methodName)
-  { } .WithMethodLenght(methodLength)
-  { } .WithMethodIndentations(methodIndentations);
+  methodMetics := TMethodMetrics.Create(methodKind, methodName);
+  with methodMetics do
+  begin
+    SetLenght(CalculateMethodLength(aMethodNode));
+    SetMaxIndentation(CalculateMethodIndentations(aMethodNode));
+  end;
   fMethods.Add(methodMetics);
 end;
 
