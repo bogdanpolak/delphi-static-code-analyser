@@ -72,27 +72,16 @@ begin
   end;
 end;
 
-function CalculateMethodIndentation(const aMethodNode
-  : TCompoundSyntaxNode): Integer;
+function CalculateMethodIndentations(const aMethodNode: TCompoundSyntaxNode)
+  : TIntegerArray;
 var
   statements: TSyntaxNode;
-  indentations: TIntegerArray;
-  step: Integer;
 begin
   fLineIndetation := TDictionary<Integer, Integer>.Create();
   try
     statements := aMethodNode.FindNode(ntStatements);
     MinIndetationNodeWalker(statements);
-    indentations := fLineIndetation.Values.ToArray.GetDistinctArray();
-    if Length(indentations)<2 then
-      Exit(0);
-    if Length(indentations)>8 then
-    begin
-      step := indentations[1] - indentations[0];
-      Result := (indentations[High(indentations)] - indentations[1]) div step;
-    end;
-    step := indentations[1] - indentations[0];
-    Result := (indentations[High(indentations)] - indentations[1]) div step;
+    Result := fLineIndetation.Values.ToArray.GetDistinctArray();
   finally
     fLineIndetation.Free;
   end;
@@ -110,12 +99,20 @@ begin
 end;
 
 procedure TUnitMetrics.AddMethod(aMethodNode: TCompoundSyntaxNode);
+var
+  methodKind: string;
+  methodName: string;
+  methodMetics: TMethodMetrics;
 begin
-  fMethods.Add(TMethodMetrics.Create(
-    { } aMethodNode.GetAttribute(anKind),
-    { } aMethodNode.GetAttribute(anName),
-    { } CalculateMethodLength(aMethodNode),
-    { } CalculateMethodIndentation(aMethodNode)));
+  methodKind := aMethodNode.GetAttribute(anKind);
+  methodName := aMethodNode.GetAttribute(anName);
+  methodMetics := TMethodMetrics.Create(methodKind, methodName);
+  with methodMetics do
+  begin
+    SetLenght(CalculateMethodLength(aMethodNode));
+    SetMaxIndentation(CalculateMethodIndentations(aMethodNode));
+  end;
+  fMethods.Add(methodMetics);
 end;
 
 procedure TUnitMetrics.CalculateMetrics(aRootNode: TSyntaxNode);

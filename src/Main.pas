@@ -13,7 +13,7 @@ type
   TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml);
 
 const
-  ApplicationMode: TApplicationMode = amFolderAnalysis;
+  ApplicationMode: TApplicationMode = amFileAnalysis;
 
 procedure ApplicationRun();
 
@@ -29,7 +29,6 @@ const
 type
   TAppConfiguration = record
     DataFolder: string;
-    TestFile: string;
     TestSubFolder: string;
   end;
 
@@ -56,8 +55,8 @@ begin
   jsAppConfig := TJSONObject.ParseJSONValue(TFile.ReadAllText(ConfigFileName))
     as TJSONObject;
   AppConfiguration.DataFolder := GetConfigValue(jsAppConfig, 'dataFolder');
-  AppConfiguration.TestFile := GetConfigValue(jsAppConfig, 'testFile');
-  AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig, 'testSubFolder');
+  AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig,
+    'testSubFolder');
 end;
 
 function GetTestFolder(): string;
@@ -80,9 +79,9 @@ begin
   Result := FileExists('..\..\' + dprFileName) or FileExists(dprFileName);
 end;
 
-function GetSampleFilePath(): string;
+function GetSampleFilePath(const aUnitFileName: string): string;
 begin
-  Result := TPath.Combine(GetTestFolder, AppConfiguration.TestFile);
+  Result := TPath.Combine(GetTestFolder, aUnitFileName);
 end;
 
 procedure ConsoleApplicationHeader();
@@ -92,6 +91,8 @@ begin
 end;
 
 procedure ApplicationRun();
+const
+  DISPLAY_LevelHigherThan = 8;
 begin
   ReadConfiguration();
   case ApplicationMode of
@@ -99,15 +100,17 @@ begin
       begin
         ConsoleApplicationHeader();
         TAnalyseFolderCommand.Execute(TPath.Combine(GetTestFolder,
-          AppConfiguration.TestSubFolder));
+          AppConfiguration.TestSubFolder), DISPLAY_LevelHigherThan);
       end;
     amFileAnalysis:
       begin
         ConsoleApplicationHeader();
-        TAnalyseUnitCommand.Execute(GetSampleFilePath());
+        // TAnalyseUnitCommand.Execute(GetSampleFilePath('testunit.pas'));
+        TAnalyseUnitCommand.Execute(GetSampleFilePath('test01.pas'));
       end;
     amGenerateXml:
-      TAnalyseUnitCommand.Execute_GenerateXML(GetSampleFilePath());
+      TAnalyseUnitCommand.Execute_GenerateXML
+        (GetSampleFilePath('testunit.pas'));
   end;
   if IsDeveloperMode then
     readln;

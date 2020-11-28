@@ -3,7 +3,8 @@ unit Analytics.MethodMetrics;
 interface
 
 uses
-  System.SysUtils;
+  System.SysUtils,
+  Utils.IntegerArray;
 
 type
   TMethodMetrics = class
@@ -13,8 +14,9 @@ type
     fLenght: Integer;
     fIndentationLevel: Integer;
   public
-    constructor Create(const aKind: string; const aFullName: string;
-      aLength: Integer; aIndentationLevel: Integer);
+    constructor Create(const aKind: string; const aFullName: string);
+    procedure SetLenght(aLength: Integer);
+    procedure SetMaxIndentation(const aIndentations: TIntegerArray);
     function ToString(): string; override;
     property Kind: string read fKind;
     property FullName: string read fFullName;
@@ -24,13 +26,29 @@ type
 
 implementation
 
-constructor TMethodMetrics.Create(const aKind: string; const aFullName: string;
-      aLength: Integer; aIndentationLevel: Integer);
+constructor TMethodMetrics.Create(const aKind: string; const aFullName: string);
 begin
   self.fKind := aKind;
   self.fFullName := aFullName;
+end;
+
+procedure TMethodMetrics.SetLenght(aLength: Integer);
+begin
   self.fLenght := aLength;
-  self.fIndentationLevel := aIndentationLevel;
+end;
+
+procedure TMethodMetrics.SetMaxIndentation(const aIndentations: TIntegerArray);
+var
+  step: Integer;
+  level: Integer;
+begin
+  level := 0;
+  if Length(aIndentations) >= 2 then
+  begin
+    step := aIndentations[1] - aIndentations[0];
+    level := (aIndentations[High(aIndentations)] - aIndentations[0]) div step;
+  end;
+  self.fIndentationLevel := level;
 end;
 
 function TMethodMetrics.ToString: string;

@@ -10,7 +10,8 @@ uses
 type
   TAnalyseFolderCommand = class
   public
-    class procedure Execute(aFolderPath: string); static;
+    class procedure Execute(aFolderPath: string;
+      aDisplayLevelHigherThan: Integer = 0); static;
   end;
 
 implementation
@@ -18,7 +19,8 @@ implementation
 uses
   Command.AnalyseUnit;
 
-class procedure TAnalyseFolderCommand.Execute(aFolderPath: string);
+class procedure TAnalyseFolderCommand.Execute(aFolderPath: string;
+  aDisplayLevelHigherThan: Integer = 0);
 var
   files: TArray<string>;
   fname: string;
@@ -29,7 +31,7 @@ begin
       TSearchOption.soAllDirectories);
     for fname in files do
     begin
-      TAnalyseUnitCommand.Execute(fname);
+      TAnalyseUnitCommand.Execute(fname, aDisplayLevelHigherThan);
     end;
   end
 end;
