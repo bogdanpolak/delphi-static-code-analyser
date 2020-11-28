@@ -3,7 +3,8 @@ unit Analytics.MethodMetrics;
 interface
 
 uses
-  System.SysUtils;
+  System.SysUtils,
+  Utils.IntegerArray;
 
 type
   TMethodMetrics = class
@@ -13,8 +14,9 @@ type
     fLenght: Integer;
     fIndentationLevel: Integer;
   public
-    constructor Create(const aKind: string; const aFullName: string;
-      aLength: Integer; aIndentationLevel: Integer);
+    constructor Create(const aKind: string; const aFullName: string);
+    function WithMethodLenght(aLength: Integer): TMethodMetrics;
+    function WithMethodIndentations(const aIndentations: TIntegerArray): TMethodMetrics;
     function ToString(): string; override;
     property Kind: string read fKind;
     property FullName: string read fFullName;
@@ -24,13 +26,32 @@ type
 
 implementation
 
-constructor TMethodMetrics.Create(const aKind: string; const aFullName: string;
-      aLength: Integer; aIndentationLevel: Integer);
+constructor TMethodMetrics.Create(const aKind: string; const aFullName: string);
 begin
   self.fKind := aKind;
   self.fFullName := aFullName;
+end;
+
+function TMethodMetrics.WithMethodLenght(aLength: Integer): TMethodMetrics;
+begin
   self.fLenght := aLength;
-  self.fIndentationLevel := aIndentationLevel;
+  Result := self;
+end;
+
+function TMethodMetrics.WithMethodIndentations(
+  const aIndentations: TIntegerArray): TMethodMetrics;
+var
+  step: Integer;
+  level: Integer;
+begin
+  level := 0;
+  if Length(aIndentations) >= 2 then
+  begin
+    step := aIndentations[1] - aIndentations[0];
+    level := (aIndentations[High(aIndentations)] - aIndentations[1]) div step;
+  end;
+  self.fIndentationLevel := level;
+  Result := self;
 end;
 
 function TMethodMetrics.ToString: string;

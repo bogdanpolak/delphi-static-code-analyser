@@ -100,22 +100,20 @@ end;
 
 procedure TUnitMetrics.AddMethod(aMethodNode: TCompoundSyntaxNode);
 var
-  indentations: TIntegerArray;
-  level: Integer;
-  step: Integer;
+  methodKind: string;
+  methodName: string;
+  methodLength: Integer;
+  methodIndentations: TIntegerArray;
+  methodMetics: TMethodMetrics;
 begin
-  indentations := CalculateMethodIndentation(aMethodNode);
-  level := 0;
-  if Length(indentations) >= 2 then
-  begin
-    step := indentations[1] - indentations[0];
-    level := (indentations[High(indentations)] - indentations[1]) div step;
-  end;
-  fMethods.Add(TMethodMetrics.Create(
-    { } aMethodNode.GetAttribute(anKind),
-    { } aMethodNode.GetAttribute(anName),
-    { } CalculateMethodLength(aMethodNode),
-    { } level));
+  methodKind := aMethodNode.GetAttribute(anKind);
+  methodName := aMethodNode.GetAttribute(anName);
+  methodLength := CalculateMethodLength(aMethodNode);
+  methodIndentations := CalculateMethodIndentation(aMethodNode);
+  methodMetics := TMethodMetrics.Create(methodKind, methodName)
+  { } .WithMethodLenght(methodLength)
+  { } .WithMethodIndentations(methodIndentations);
+  fMethods.Add(methodMetics);
 end;
 
 procedure TUnitMetrics.CalculateMetrics(aRootNode: TSyntaxNode);
