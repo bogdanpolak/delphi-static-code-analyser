@@ -49,10 +49,18 @@ end;
 procedure ReadConfiguration();
 var
   jsAppConfig: TJSONObject;
+  configFilePath: string;
 begin
-  Assert(FileExists(ConfigFileName),
-    Format('Can''t run. Missing mandatory config file: %s', [ConfigFileName]));
-  jsAppConfig := TJSONObject.ParseJSONValue(TFile.ReadAllText(ConfigFileName))
+  if FileExists(ConfigFileName) then
+    configFilePath := ConfigFileName
+  else if FileExists(TPath.Combine('../src/', ConfigFileName)) then
+    configFilePath := TPath.Combine('../src/', ConfigFileName)
+  else
+    configFilePath := '';
+  Assert(configFilePath <> '',
+    Format('Can''t run application, missing config file: %s',
+    [ConfigFileName]));
+  jsAppConfig := TJSONObject.ParseJSONValue(TFile.ReadAllText(configFilePath))
     as TJSONObject;
   AppConfiguration.DataFolder := GetConfigValue(jsAppConfig, 'dataFolder');
   AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig,
@@ -76,7 +84,7 @@ var
   dprFileName: string;
 begin
   dprFileName := ChangeFileExt(ExtractFileName(ParamStr(0)), '.dpr');
-  Result := FileExists('..\..\' + dprFileName) or FileExists(dprFileName);
+  Result := FileExists('..\src\' + dprFileName) or FileExists(dprFileName);
 end;
 
 function GetSampleFilePath(const aUnitFileName: string): string;
