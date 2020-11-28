@@ -29,7 +29,6 @@ const
 type
   TAppConfiguration = record
     DataFolder: string;
-    TestFile: string;
     TestSubFolder: string;
   end;
 
@@ -56,7 +55,6 @@ begin
   jsAppConfig := TJSONObject.ParseJSONValue(TFile.ReadAllText(ConfigFileName))
     as TJSONObject;
   AppConfiguration.DataFolder := GetConfigValue(jsAppConfig, 'dataFolder');
-  AppConfiguration.TestFile := GetConfigValue(jsAppConfig, 'testFile');
   AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig,
     'testSubFolder');
 end;
@@ -81,9 +79,9 @@ begin
   Result := FileExists('..\..\' + dprFileName) or FileExists(dprFileName);
 end;
 
-function GetSampleFilePath(): string;
+function GetSampleFilePath(const aUnitFileName: string): string;
 begin
-  Result := TPath.Combine(GetTestFolder, AppConfiguration.TestFile);
+  Result := TPath.Combine(GetTestFolder, aUnitFileName);
 end;
 
 procedure ConsoleApplicationHeader();
@@ -107,10 +105,12 @@ begin
     amFileAnalysis:
       begin
         ConsoleApplicationHeader();
-        TAnalyseUnitCommand.Execute(GetSampleFilePath());
+        // TAnalyseUnitCommand.Execute(GetSampleFilePath('testunit.pas'));
+        TAnalyseUnitCommand.Execute(GetSampleFilePath('test01.pas'));
       end;
     amGenerateXml:
-      TAnalyseUnitCommand.Execute_GenerateXML(GetSampleFilePath());
+      TAnalyseUnitCommand.Execute_GenerateXML
+        (GetSampleFilePath('testunit.pas'));
   end;
   if IsDeveloperMode then
     readln;
