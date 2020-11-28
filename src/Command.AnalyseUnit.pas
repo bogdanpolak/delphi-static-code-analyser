@@ -23,12 +23,13 @@ type
     fTreeBuilder: TPasSyntaxTreeBuilder;
     procedure LoadUnit();
     procedure CalculateMetrics();
-    procedure DisplayMetricsResults;
+    procedure DisplayMetricsResults(aMinLevel: Integer);
     procedure GenerateXmlTree;
   public
     constructor Create(const aUnitName: string);
     destructor Destroy; override;
-    class procedure Execute(const aFileName: string); static;
+    class procedure Execute(const aFileName: string;
+      aDisplayLevelHigherThan: Integer = 0); static;
     class procedure Execute_GenerateXML(const aFileName: string); static;
   end;
 
@@ -90,7 +91,7 @@ var
 begin
   try
     syntaxTree := fTreeBuilder.Run(fStringStream);
-    writeln(TSyntaxTreeWriter.ToXML(syntaxTree, true));
+    writeln(TSyntaxTreeWriter.ToXML(syntaxTree, True));
     syntaxTree.Free;
   except
     on E: ESyntaxTreeException do
@@ -101,16 +102,18 @@ begin
   end;
 end;
 
-procedure TAnalyseUnitCommand.DisplayMetricsResults();
+procedure TAnalyseUnitCommand.DisplayMetricsResults(aMinLevel: Integer);
 var
   idx: Integer;
 begin
   writeln(fUnitMetrics.Name);
   for idx := 0 to fUnitMetrics.MethodsCount - 1 do
-    writeln('  - ', fUnitMetrics.GetMethod(idx).ToString);
+    if fUnitMetrics.GetMethod(idx).IndentationLevel >= aMinLevel then
+      writeln('  - ', fUnitMetrics.GetMethod(idx).ToString);
 end;
 
-class procedure TAnalyseUnitCommand.Execute(const aFileName: string);
+class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
+  aDisplayLevelHigherThan: Integer = 0);
 var
   cmdAnalyseUnit: TAnalyseUnitCommand;
 begin
@@ -118,14 +121,14 @@ begin
   try
     cmdAnalyseUnit.LoadUnit();
     cmdAnalyseUnit.CalculateMetrics();
-    cmdAnalyseUnit.DisplayMetricsResults();
+    cmdAnalyseUnit.DisplayMetricsResults(aDisplayLevelHigherThan);
   finally
     cmdAnalyseUnit.Free;
   end;
 end;
 
-class procedure TAnalyseUnitCommand.Execute_GenerateXML(
-  const aFileName: string);
+class procedure TAnalyseUnitCommand.Execute_GenerateXML(const aFileName
+  : string);
 var
   cmdAnalyseUnit: TAnalyseUnitCommand;
 begin

@@ -57,7 +57,8 @@ begin
     as TJSONObject;
   AppConfiguration.DataFolder := GetConfigValue(jsAppConfig, 'dataFolder');
   AppConfiguration.TestFile := GetConfigValue(jsAppConfig, 'testFile');
-  AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig, 'testSubFolder');
+  AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig,
+    'testSubFolder');
 end;
 
 function GetTestFolder(): string;
@@ -92,6 +93,8 @@ begin
 end;
 
 procedure ApplicationRun();
+const
+  DISPLAY_LevelHigherThan = 8;
 begin
   ReadConfiguration();
   case ApplicationMode of
@@ -99,7 +102,7 @@ begin
       begin
         ConsoleApplicationHeader();
         TAnalyseFolderCommand.Execute(TPath.Combine(GetTestFolder,
-          AppConfiguration.TestSubFolder));
+          AppConfiguration.TestSubFolder), DISPLAY_LevelHigherThan);
       end;
     amFileAnalysis:
       begin
