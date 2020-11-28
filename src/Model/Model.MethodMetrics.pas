@@ -1,4 +1,4 @@
-unit Analytics.MethodMetrics;
+unit Model.MethodMetrics;
 
 interface
 
@@ -16,7 +16,7 @@ type
   public
     constructor Create(const aKind: string; const aFullName: string);
     procedure SetLenght(aLength: Integer);
-    procedure SetMaxIndentation(const aIndentations: TIntegerArray);
+    procedure SetMaxIndentation(aMaxIndentation: Integer);
     function ToString(): string; override;
     property Kind: string read fKind;
     property FullName: string read fFullName;
@@ -37,18 +37,9 @@ begin
   self.fLenght := aLength;
 end;
 
-procedure TMethodMetrics.SetMaxIndentation(const aIndentations: TIntegerArray);
-var
-  step: Integer;
-  level: Integer;
+procedure TMethodMetrics.SetMaxIndentation(aMaxIndentation: Integer);
 begin
-  level := 0;
-  if Length(aIndentations) >= 2 then
-  begin
-    step := aIndentations[1] - aIndentations[0];
-    level := (aIndentations[High(aIndentations)] - aIndentations[0]) div step;
-  end;
-  self.fIndentationLevel := level;
+  self.fIndentationLevel := aMaxIndentation;
 end;
 
 function TMethodMetrics.ToString: string;

@@ -20,11 +20,12 @@ uses
   SimpleParser in '..\components\DelphiAST\SimpleParser\SimpleParser.pas',
   SimpleParser.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Types.pas',
   IncludeHandler in 'IncludeHandler.pas',
-  Analytics.UnitMetrics in 'Analytics.UnitMetrics.pas',
-  Analytics.MethodMetrics in 'Analytics.MethodMetrics.pas',
+  Model.MethodMetrics in 'Model\Model.MethodMetrics.pas',
+  Model.UnitMetrics in 'Model\Model.UnitMetrics.pas',
+  Model.MetricsCalculator in 'Model\Model.MetricsCalculator.pas',
   Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
   Command.AnalyseFolder in 'Command.AnalyseFolder.pas',
-  Utils.IntegerArray in 'Utils.IntegerArray.pas';
+  Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas';
 
 begin
   try
