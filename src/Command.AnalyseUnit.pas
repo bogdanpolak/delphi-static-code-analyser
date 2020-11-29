@@ -65,7 +65,6 @@ begin
   except
     on E: ESyntaxTreeException do
     begin
-      unitMetrics.Free;
       writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
         sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
       raise;

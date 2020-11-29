@@ -98,23 +98,51 @@ end;
 function TUnitCalculator.CalculateMethodMaxIndent(const aMethodNode
   : TCompoundSyntaxNode): Integer;
 var
-  statements: TSyntaxNode;
-  step: Integer;
+  statements: TCompoundSyntaxNode;
+  sl: TStringList;
+  row1: Integer;
+  row2: Integer;
+  row: Integer;
+  Line: string;
+  maxIndent: Integer;
+  indent: Integer;
+  indentationList: TList<Integer>;
   indentations: TIntegerArray;
+  step: Integer;
 begin
-  Result := 0;
-  fLineIndetation := TDictionary<Integer, Integer>.Create();
+  statements := aMethodNode.FindNode(ntStatements) as TCompoundSyntaxNode;
+  if statements=nil then
+    Exit(0);
+  row1 := statements.Line;
+  row2 := statements.EndLine;
+  sl := TStringList.Create;
+  indentationList := TList<Integer>.Create;;
   try
-    statements := aMethodNode.FindNode(ntStatements);
-    MinIndetationNodeWalker(statements);
-    indentations := fLineIndetation.Values.ToArray.GetDistinctArray();
-    if Length(indentations) >= 2 then
+    fStringStream.Position := 0;
+    sl.LoadFromStream(fStringStream);
+    fStringStream.Position := 0;
+    maxIndent := 0;
+    for row := row1 to row2 do
     begin
-      step := indentations[1] - indentations[0];
-      Result := (indentations[High(indentations)] - indentations[0]) div step;
+      Line := sl[row - 1];
+      indent := 0;
+      while (indent < Length(Line)) and (Line[indent + 1] = ' ') do
+        inc(indent);
+      if indent > 0 then
+        indentationList.Add(indent);
+    end;
+    indentations := indentationList.ToArray.GetDistinctArray();
+    case Length(indentations) of
+      0:
+        Result := 0;
+      1:
+        Result := indentations[0];
+      else
+        Result := indentations[High(indentations)] div indentations[0];
     end;
   finally
-    fLineIndetation.Free;
+    sl.Free;
+    indentationList.Free;
   end;
 end;
 
@@ -165,13 +193,13 @@ end;
 
 class function TUnitCalculator.Calculate(const aFileName: string): TUnitMetrics;
 var
-  unitMetrics: TUnitMetrics;
+  UnitMetrics: TUnitMetrics;
   calculator: TUnitCalculator;
   syntaxRootNode: TSyntaxNode;
 begin
-  unitMetrics := TUnitMetrics.Create(aFileName);
+  UnitMetrics := TUnitMetrics.Create(aFileName);
   try
-    calculator := TUnitCalculator.Create(unitMetrics);
+    calculator := TUnitCalculator.Create(UnitMetrics);
     try
       calculator.LoadUnit(aFileName);
       syntaxRootNode := calculator.fTreeBuilder.Run(calculator.fStringStream);
@@ -187,7 +215,7 @@ begin
   except
     on E: Exception do
     begin
-      unitMetrics.Free;
+      UnitMetrics.Free;
       raise;
     end;
   end;
