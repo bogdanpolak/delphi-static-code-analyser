@@ -59,6 +59,7 @@ var
   unitMetrics: TUnitMetrics;
   idx: Integer;
   methodMetrics: TMethodMetrics;
+  isFirst: Boolean;
 begin
   try
     unitMetrics := TUnitCalculator.Calculate(aFileName);
@@ -70,12 +71,17 @@ begin
       raise;
     end;
   end;
-  writeln(UnitMetrics.Name);
+  isFirst := True;
   for idx := 0 to UnitMetrics.MethodsCount - 1 do
   begin
     methodMetrics := UnitMetrics.GetMethod(idx);
     if methodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
+    begin
+      if isFirst then
+        writeln(UnitMetrics.Name);
+      isFirst := False;
       writeln('  - ', methodMetrics.ToString);
+    end;
   end;
   unitMetrics.Free;
 end;
