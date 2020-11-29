@@ -13,7 +13,7 @@ type
   TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml);
 
 const
-  ApplicationMode: TApplicationMode = amFileAnalysis;
+  ApplicationMode: TApplicationMode = amFolderAnalysis;
 
 procedure ApplicationRun();
 
