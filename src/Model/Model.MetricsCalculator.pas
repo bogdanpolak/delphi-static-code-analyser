@@ -132,14 +132,7 @@ begin
         indentationList.Add(indent);
     end;
     indentations := indentationList.ToArray.GetDistinctArray();
-    case Length(indentations) of
-      0:
-        Result := 0;
-      1:
-        Result := indentations[0];
-      else
-        Result := indentations[High(indentations)] div indentations[0];
-    end;
+    Result := Length(indentations);
   finally
     sl.Free;
     indentationList.Free;

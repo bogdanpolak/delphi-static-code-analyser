@@ -13,7 +13,7 @@ type
   TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml);
 
 const
-  ApplicationMode: TApplicationMode = amFolderAnalysis;
+  ApplicationMode: TApplicationMode = amFileAnalysis;
 
 procedure ApplicationRun();
 
@@ -115,7 +115,7 @@ begin
         ConsoleApplicationHeader();
         // TAnalyseUnitCommand.Execute_CodeAnalysis(GetSampleFilePath('testunit.pas'));
         TAnalyseUnitCommand.Execute_CodeAnalysis
-          (GetSampleFilePath('test01.pas'));
+          (GetSampleFilePath('test02.pas'));
       end;
     amGenerateXml:
       TAnalyseUnitCommand.Execute_GenerateXML
