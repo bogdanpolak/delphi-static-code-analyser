@@ -22,20 +22,19 @@ type
   private
     fStringStream: TStringStream;
     fTreeBuilder: TPasSyntaxTreeBuilder;
+    fUnitMetrics: TUnitMetrics;
     procedure LoadUnit(const aFileName: string);
-    procedure CalculateUnit(const aRootNode: TSyntaxNode;
-      var aUnitMetrics: TUnitMetrics);
-    procedure CalculateMethod(aMethodNode: TCompoundSyntaxNode;
-      var aUnitMetrics: TUnitMetrics);
     function CalculateMethodLength(const aMethodNode
       : TCompoundSyntaxNode): Integer;
     function CalculateMethodMaxIndent(const aMethodNode
       : TCompoundSyntaxNode): Integer;
     procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
+    procedure CalculateUnit(const aRootNode: TSyntaxNode);
+    procedure CalculateMethod(aMethodNode: TCompoundSyntaxNode);
   public
-    constructor Create();
+    constructor Create(const aUnitMetrics: TUnitMetrics);
     destructor Destroy; override;
-    class procedure Calculate(var aUnitMetrics: TUnitMetrics); static;
+    class function Calculate(const aFileName: string): TUnitMetrics; static;
   end;
 
 implementation
@@ -43,10 +42,11 @@ implementation
 uses
   Utils.IntegerArray;
 
-constructor TUnitCalculator.Create();
+constructor TUnitCalculator.Create(const aUnitMetrics: TUnitMetrics);
 begin
   fStringStream := TStringStream.Create;
   fTreeBuilder := TPasSyntaxTreeBuilder.Create;
+  fUnitMetrics := aUnitMetrics;
   {
     if aIncludeFolder <> '' then
     begin
@@ -98,23 +98,44 @@ end;
 function TUnitCalculator.CalculateMethodMaxIndent(const aMethodNode
   : TCompoundSyntaxNode): Integer;
 var
-  statements: TSyntaxNode;
-  step: Integer;
+  statements: TCompoundSyntaxNode;
+  sl: TStringList;
+  row1: Integer;
+  row2: Integer;
+  row: Integer;
+  Line: string;
+  maxIndent: Integer;
+  indent: Integer;
+  indentationList: TList<Integer>;
   indentations: TIntegerArray;
+  step: Integer;
 begin
-  Result := 0;
-  fLineIndetation := TDictionary<Integer, Integer>.Create();
+  statements := aMethodNode.FindNode(ntStatements) as TCompoundSyntaxNode;
+  if statements=nil then
+    Exit(0);
+  row1 := statements.Line;
+  row2 := statements.EndLine;
+  sl := TStringList.Create;
+  indentationList := TList<Integer>.Create;;
   try
-    statements := aMethodNode.FindNode(ntStatements);
-    MinIndetationNodeWalker(statements);
-    indentations := fLineIndetation.Values.ToArray.GetDistinctArray();
-    if Length(indentations) >= 2 then
+    fStringStream.Position := 0;
+    sl.LoadFromStream(fStringStream);
+    fStringStream.Position := 0;
+    maxIndent := 0;
+    for row := row1 to row2 do
     begin
-      step := indentations[1] - indentations[0];
-      Result := (indentations[High(indentations)] - indentations[0]) div step;
+      Line := sl[row - 1];
+      indent := 0;
+      while (indent < Length(Line)) and (Line[indent + 1] = ' ') do
+        inc(indent);
+      if indent > 0 then
+        indentationList.Add(indent);
     end;
+    indentations := indentationList.ToArray.GetDistinctArray();
+    Result := Length(indentations);
   finally
-    fLineIndetation.Free;
+    sl.Free;
+    indentationList.Free;
   end;
 end;
 
@@ -130,8 +151,7 @@ begin
     Result := 1;
 end;
 
-procedure TUnitCalculator.CalculateMethod(aMethodNode: TCompoundSyntaxNode;
-  var aUnitMetrics: TUnitMetrics);
+procedure TUnitCalculator.CalculateMethod(aMethodNode: TCompoundSyntaxNode);
 var
   methodKind: string;
   methodName: string;
@@ -145,13 +165,12 @@ begin
     SetLenght(CalculateMethodLength(aMethodNode));
     SetMaxIndentation(CalculateMethodMaxIndent(aMethodNode));
   end;
-  aUnitMetrics.AddMethod(methodMetics);
+  fUnitMetrics.AddMethod(methodMetics);
 end;
 
 // ---------------------------------------------------------------------
 
-procedure TUnitCalculator.CalculateUnit(const aRootNode: TSyntaxNode;
-  var aUnitMetrics: TUnitMetrics);
+procedure TUnitCalculator.CalculateUnit(const aRootNode: TSyntaxNode);
 var
   implementationNode: TSyntaxNode;
   child: TSyntaxNode;
@@ -161,26 +180,37 @@ begin
   for child in implementationNode.ChildNodes do
     if child.Typ = ntMethod then
     begin
-      CalculateMethod(child as TCompoundSyntaxNode, aUnitMetrics);
+      CalculateMethod(child as TCompoundSyntaxNode);
     end;
 end;
 
-class procedure TUnitCalculator.Calculate(var aUnitMetrics: TUnitMetrics);
+class function TUnitCalculator.Calculate(const aFileName: string): TUnitMetrics;
 var
+  UnitMetrics: TUnitMetrics;
   calculator: TUnitCalculator;
   syntaxRootNode: TSyntaxNode;
 begin
-  calculator := TUnitCalculator.Create();
+  UnitMetrics := TUnitMetrics.Create(aFileName);
   try
-    calculator.LoadUnit(aUnitMetrics.Name);
-    syntaxRootNode := calculator.fTreeBuilder.Run(calculator.fStringStream);
+    calculator := TUnitCalculator.Create(UnitMetrics);
     try
-      calculator.CalculateUnit(syntaxRootNode, aUnitMetrics);
+      calculator.LoadUnit(aFileName);
+      syntaxRootNode := calculator.fTreeBuilder.Run(calculator.fStringStream);
+      try
+        calculator.CalculateUnit(syntaxRootNode);
+        Result := UnitMetrics;
+      finally
+        syntaxRootNode.Free;
+      end;
     finally
-      syntaxRootNode.Free;
+      calculator.Free;
     end;
-  finally
-    calculator.Free;
+  except
+    on E: Exception do
+    begin
+      UnitMetrics.Free;
+      raise;
+    end;
   end;
 end;
 
