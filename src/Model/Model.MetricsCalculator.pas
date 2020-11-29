@@ -22,20 +22,19 @@ type
   private
     fStringStream: TStringStream;
     fTreeBuilder: TPasSyntaxTreeBuilder;
+    fUnitMetrics: TUnitMetrics;
     procedure LoadUnit(const aFileName: string);
-    procedure CalculateUnit(const aRootNode: TSyntaxNode;
-      var aUnitMetrics: TUnitMetrics);
-    procedure CalculateMethod(aMethodNode: TCompoundSyntaxNode;
-      var aUnitMetrics: TUnitMetrics);
     function CalculateMethodLength(const aMethodNode
       : TCompoundSyntaxNode): Integer;
     function CalculateMethodMaxIndent(const aMethodNode
       : TCompoundSyntaxNode): Integer;
     procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
+    procedure CalculateUnit(const aRootNode: TSyntaxNode);
+    procedure CalculateMethod(aMethodNode: TCompoundSyntaxNode);
   public
-    constructor Create();
+    constructor Create(const aUnitMetrics: TUnitMetrics);
     destructor Destroy; override;
-    class procedure Calculate(var aUnitMetrics: TUnitMetrics); static;
+    class function Calculate(const aFileName: string): TUnitMetrics; static;
   end;
 
 implementation
@@ -43,10 +42,11 @@ implementation
 uses
   Utils.IntegerArray;
 
-constructor TUnitCalculator.Create();
+constructor TUnitCalculator.Create(const aUnitMetrics: TUnitMetrics);
 begin
   fStringStream := TStringStream.Create;
   fTreeBuilder := TPasSyntaxTreeBuilder.Create;
+  fUnitMetrics := aUnitMetrics;
   {
     if aIncludeFolder <> '' then
     begin
@@ -130,8 +130,7 @@ begin
     Result := 1;
 end;
 
-procedure TUnitCalculator.CalculateMethod(aMethodNode: TCompoundSyntaxNode;
-  var aUnitMetrics: TUnitMetrics);
+procedure TUnitCalculator.CalculateMethod(aMethodNode: TCompoundSyntaxNode);
 var
   methodKind: string;
   methodName: string;
@@ -145,13 +144,12 @@ begin
     SetLenght(CalculateMethodLength(aMethodNode));
     SetMaxIndentation(CalculateMethodMaxIndent(aMethodNode));
   end;
-  aUnitMetrics.AddMethod(methodMetics);
+  fUnitMetrics.AddMethod(methodMetics);
 end;
 
 // ---------------------------------------------------------------------
 
-procedure TUnitCalculator.CalculateUnit(const aRootNode: TSyntaxNode;
-  var aUnitMetrics: TUnitMetrics);
+procedure TUnitCalculator.CalculateUnit(const aRootNode: TSyntaxNode);
 var
   implementationNode: TSyntaxNode;
   child: TSyntaxNode;
@@ -161,26 +159,37 @@ begin
   for child in implementationNode.ChildNodes do
     if child.Typ = ntMethod then
     begin
-      CalculateMethod(child as TCompoundSyntaxNode, aUnitMetrics);
+      CalculateMethod(child as TCompoundSyntaxNode);
     end;
 end;
 
-class procedure TUnitCalculator.Calculate(var aUnitMetrics: TUnitMetrics);
+class function TUnitCalculator.Calculate(const aFileName: string): TUnitMetrics;
 var
+  unitMetrics: TUnitMetrics;
   calculator: TUnitCalculator;
   syntaxRootNode: TSyntaxNode;
 begin
-  calculator := TUnitCalculator.Create();
+  unitMetrics := TUnitMetrics.Create(aFileName);
   try
-    calculator.LoadUnit(aUnitMetrics.Name);
-    syntaxRootNode := calculator.fTreeBuilder.Run(calculator.fStringStream);
+    calculator := TUnitCalculator.Create(unitMetrics);
     try
-      calculator.CalculateUnit(syntaxRootNode, aUnitMetrics);
+      calculator.LoadUnit(aFileName);
+      syntaxRootNode := calculator.fTreeBuilder.Run(calculator.fStringStream);
+      try
+        calculator.CalculateUnit(syntaxRootNode);
+        Result := UnitMetrics;
+      finally
+        syntaxRootNode.Free;
+      end;
     finally
-      syntaxRootNode.Free;
+      calculator.Free;
     end;
-  finally
-    calculator.Free;
+  except
+    on E: Exception do
+    begin
+      unitMetrics.Free;
+      raise;
+    end;
   end;
 end;
 

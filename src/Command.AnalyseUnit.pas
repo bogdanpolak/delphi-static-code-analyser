@@ -56,32 +56,29 @@ end;
 class procedure TAnalyseUnitCommand.Execute_CodeAnalysis(const aFileName
   : string; aDisplayLevelHigherThan: Integer = 0);
 var
-  UnitMetrics: TUnitMetrics;
+  unitMetrics: TUnitMetrics;
   idx: Integer;
-  MethodMetrics: TMethodMetrics;
+  methodMetrics: TMethodMetrics;
 begin
-  UnitMetrics := TUnitMetrics.Create(aFileName);
   try
-    try
-      TUnitCalculator.Calculate(UnitMetrics);
-      writeln(UnitMetrics.Name);
-      for idx := 0 to UnitMetrics.MethodsCount - 1 do
-      begin
-        MethodMetrics := UnitMetrics.GetMethod(idx);
-        if MethodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
-          writeln('  - ', MethodMetrics.ToString);
-      end;
-    except
-      on E: ESyntaxTreeException do
-      begin
-        writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
-          sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
-        raise;
-      end;
+    unitMetrics := TUnitCalculator.Calculate(aFileName);
+  except
+    on E: ESyntaxTreeException do
+    begin
+      unitMetrics.Free;
+      writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
+        sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
+      raise;
     end;
-  finally
-    UnitMetrics.Free;
   end;
+  writeln(UnitMetrics.Name);
+  for idx := 0 to UnitMetrics.MethodsCount - 1 do
+  begin
+    methodMetrics := UnitMetrics.GetMethod(idx);
+    if methodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
+      writeln('  - ', methodMetrics.ToString);
+  end;
+  unitMetrics.Free;
 end;
 
 class procedure TAnalyseUnitCommand.Execute_GenerateXML(const aFileName
