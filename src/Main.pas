@@ -10,10 +10,10 @@ uses
   System.Diagnostics;
 
 type
-  TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml);
+  TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml, amGenerateCsv);
 
 const
-  ApplicationMode: TApplicationMode = amFolderAnalysis;
+  ApplicationMode: TApplicationMode = amGenerateCsv;
 
 procedure ApplicationRun();
 
@@ -120,6 +120,9 @@ begin
     amGenerateXml:
       TAnalyseUnitCommand.Execute_GenerateXML
         (GetSampleFilePath('testunit.pas'));
+    amGenerateCsv:
+      TAnalyseFolderCommand.Execute_GenerateCsv(TPath.Combine(GetTestFolder,
+          AppConfiguration.TestSubFolder), DISPLAY_LevelHigherThan);
   end;
   if IsDeveloperMode then
     readln;

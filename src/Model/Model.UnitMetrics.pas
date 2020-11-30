@@ -19,6 +19,8 @@ type
     function MethodsCount(): Integer;
     function GetMethod(aIdx: Integer): TMethodMetrics;
     procedure AddMethod(const aMethodMetics: TMethodMetrics);
+    function FilterMethods(aDisplayLevelHigherThan: Integer)
+      : TArray<TMethodMetrics>;
   end;
 
 implementation
@@ -33,6 +35,26 @@ destructor TUnitMetrics.Destroy;
 begin
   fMethods.Free;
   inherited;
+end;
+
+function TUnitMetrics.FilterMethods(aDisplayLevelHigherThan: Integer)
+  : TArray<TMethodMetrics>;
+var
+  list: TList<TMethodMetrics>;
+  method: TMethodMetrics;
+begin
+  if aDisplayLevelHigherThan=0 then
+    Exit(fMethods.ToArray);
+  Result := nil;
+  list := TList<TMethodMetrics>.Create;
+  try
+    for method in fMethods do
+      if method.IndentationLevel>aDisplayLevelHigherThan then
+        list.Add(method);
+    Result := list.ToArray;
+  finally
+    list.Free;
+  end;
 end;
 
 function TUnitMetrics.GetMethod(aIdx: Integer): TMethodMetrics;

@@ -12,6 +12,8 @@ type
   public
     class procedure Execute(aFolderPath: string;
       aDisplayLevelHigherThan: Integer = 0); static;
+    class procedure Execute_GenerateCsv(aFolderPath: string;
+      aDisplayLevelHigherThan: Integer = 0); static;
   end;
 
 implementation
@@ -32,6 +34,23 @@ begin
     for fname in files do
     begin
       TAnalyseUnitCommand.Execute_CodeAnalysis(fname, aDisplayLevelHigherThan);
+    end;
+  end
+end;
+
+class procedure TAnalyseFolderCommand.Execute_GenerateCsv(aFolderPath: string;
+  aDisplayLevelHigherThan: Integer);
+var
+  files: TArray<string>;
+  fname: string;
+begin
+  if TDirectory.Exists(aFolderPath) then
+  begin
+    files := TDirectory.GetFiles(aFolderPath, '*.pas',
+      TSearchOption.soAllDirectories);
+    for fname in files do
+    begin
+      TAnalyseUnitCommand.Execute_GenerateCsv(fname, aDisplayLevelHigherThan);
     end;
   end
 end;
