@@ -10,10 +10,11 @@ uses
   System.Diagnostics;
 
 type
-  TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml);
+  TApplicationMode = (amFolderAnalysis, amGenerateCsv, amFileAnalysis,
+    amGenerateXml);
 
 const
-  ApplicationMode: TApplicationMode = amFolderAnalysis;
+  ApplicationMode: TApplicationMode = amGenerateCsv;
 
 procedure ApplicationRun();
 
@@ -21,7 +22,7 @@ implementation
 
 uses
   Command.AnalyseUnit,
-  Command.AnalyseFolder;
+  Command.GenerateXml;
 
 const
   ConfigFileName = 'appconfig.json';
@@ -98,28 +99,52 @@ begin
   writeln('----------------------------------');
 end;
 
+function GetUnits(): TArray<string>;
+var
+  folderPath: string;
+begin
+  if ApplicationMode = amGenerateXml then
+  begin
+    Result := [GetSampleFilePath('testunit.pas')];
+    Exit;
+  end
+  else if ApplicationMode = amFileAnalysis then
+  begin
+    Result := [GetSampleFilePath('test02.pas')];
+    Exit;
+  end;
+  folderPath := TPath.Combine(GetTestFolder, AppConfiguration.TestSubFolder);
+  if TDirectory.Exists(folderPath) then
+  begin
+    Result := TDirectory.GetFiles(folderPath, '*.pas',
+      TSearchOption.soAllDirectories);
+  end
+end;
+
 procedure ApplicationRun();
 const
   DISPLAY_LevelHigherThan = 8;
+var
+  files: TArray<string>;
+  fname: string;
 begin
   ReadConfiguration();
-  case ApplicationMode of
-    amFolderAnalysis:
-      begin
-        ConsoleApplicationHeader();
-        TAnalyseFolderCommand.Execute(TPath.Combine(GetTestFolder,
-          AppConfiguration.TestSubFolder), DISPLAY_LevelHigherThan);
-      end;
-    amFileAnalysis:
-      begin
-        ConsoleApplicationHeader();
-        // TAnalyseUnitCommand.Execute_CodeAnalysis(GetSampleFilePath('testunit.pas'));
-        TAnalyseUnitCommand.Execute_CodeAnalysis
-          (GetSampleFilePath('test02.pas'));
-      end;
-    amGenerateXml:
-      TAnalyseUnitCommand.Execute_GenerateXML
-        (GetSampleFilePath('testunit.pas'));
+  if ApplicationMode in [amFolderAnalysis, amFileAnalysis] then
+    ConsoleApplicationHeader();
+  files := GetUnits();
+  for fname in files do
+  begin
+    case ApplicationMode of
+      amFolderAnalysis:
+        TAnalyseUnitCommand.Execute(fname, rFormatPlainText,
+          DISPLAY_LevelHigherThan);
+      amGenerateCsv:
+        TAnalyseUnitCommand.Execute(fname, rFormatCsv, DISPLAY_LevelHigherThan);
+      amFileAnalysis:
+        TAnalyseUnitCommand.Execute(fname, rFormatPlainText);
+      amGenerateXml:
+        TGenerateXmlCommand.Execute(fname);
+    end;
   end;
   if IsDeveloperMode then
     readln;

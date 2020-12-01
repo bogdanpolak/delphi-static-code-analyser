@@ -7,7 +7,6 @@ uses
   System.Classes,
   DelphiAST,
   DelphiAST.Classes,
-  DelphiAST.Writer,
   SimpleParser.Lexer.Types,
   DelphiAST.SimpleParserEx,
   IncludeHandler,
@@ -16,92 +15,75 @@ uses
   Model.MethodMetrics;
 
 type
+  TReportFormat = (rFormatPlainText, rFormatCsv);
+
   TAnalyseUnitCommand = class
   private
-    class function GenerateXml(const aStream: TStream): string; static;
+    class procedure GenerateCsv(const aUnitName: string;
+      const methods: TArray<TMethodMetrics>); static;
+    class procedure GeneratePlainText(const aUnitName: string;
+      const methods: TArray<TMethodMetrics>); static;
   public
-    class procedure Execute_CodeAnalysis(const aFileName: string;
+    class procedure Execute(const aFileName: string;
+      aReportFormat: TReportFormat;
       aDisplayLevelHigherThan: Integer = 0); static;
-    class procedure Execute_GenerateXML(const aFileName: string); static;
   end;
 
 implementation
 
-uses Model.MetricsCalculator;
+uses
+  Model.MetricsCalculator;
 
-class function TAnalyseUnitCommand.GenerateXml(const aStream: TStream): string;
+class procedure TAnalyseUnitCommand.GeneratePlainText(const aUnitName: string;
+  const methods: TArray<TMethodMetrics>);
 var
-  treeBuilder: TPasSyntaxTreeBuilder;
-  syntaxTree: TSyntaxNode;
+  method: TMethodMetrics;
+  isFirst: Boolean;
 begin
-  Result := '';
-  treeBuilder := TPasSyntaxTreeBuilder.Create;
-  try
-    try
-      syntaxTree := treeBuilder.Run(aStream);
-      Result := TSyntaxTreeWriter.ToXML(syntaxTree, True);
-      syntaxTree.Free;
-    except
-      on E: ESyntaxTreeException do
-      begin
-        Result := Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak
-          + sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True);
-      end;
-    end;
-  finally
-    treeBuilder.Free;
+  isFirst := True;
+  for method in methods do
+  begin
+    if isFirst then
+      writeln(aUnitName);
+    isFirst := False;
+    writeln(Format('  - %s %s  =  [Lenght: %d] [Level: %d]',
+      [method.Kind, method.FullName, method.Lenght, method.IndentationLevel]));
   end;
 end;
 
-class procedure TAnalyseUnitCommand.Execute_CodeAnalysis(const aFileName
-  : string; aDisplayLevelHigherThan: Integer = 0);
+class procedure TAnalyseUnitCommand.GenerateCsv(const aUnitName: string;
+  const methods: TArray<TMethodMetrics>);
 var
-  unitMetrics: TUnitMetrics;
-  idx: Integer;
-  methodMetrics: TMethodMetrics;
-  isFirst: Boolean;
+  method: TMethodMetrics;
+begin
+  for method in methods do
+    writeln(Format('"%s"'#9'"%s %s"'#9'%d'#9'%d', [aUnitName, method.Kind,
+      method.FullName, method.Lenght, method.IndentationLevel]));
+end;
+
+class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
+  aReportFormat: TReportFormat; aDisplayLevelHigherThan: Integer = 0);
+var
+  unitMetrics1: TUnitMetrics;
+  methods: TArray<TMethodMetrics>;
 begin
   try
-    unitMetrics := TUnitCalculator.Calculate(aFileName);
+    unitMetrics1 := TUnitCalculator.Calculate(aFileName);
   except
     on E: ESyntaxTreeException do
     begin
-      writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak +
-        sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True));
+      writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]));
       raise;
     end;
   end;
-  isFirst := True;
-  for idx := 0 to UnitMetrics.MethodsCount - 1 do
-  begin
-    methodMetrics := UnitMetrics.GetMethod(idx);
-    if methodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
-    begin
-      if isFirst then
-        writeln(UnitMetrics.Name);
-      isFirst := False;
-      writeln('  - ', methodMetrics.ToString);
-    end;
+  methods := unitMetrics1.FilterMethods(aDisplayLevelHigherThan);
+  case aReportFormat of
+    rFormatPlainText:
+      GeneratePlainText(unitMetrics1.Name, methods);
+    rFormatCsv:
+      GenerateCsv(unitMetrics1.Name, methods);
   end;
-  unitMetrics.Free;
-end;
-
-class procedure TAnalyseUnitCommand.Execute_GenerateXML(const aFileName
-  : string);
-var
-  stringStream: TStringStream;
-  text: string;
-begin
-  stringStream := TStringStream.Create;
-  try
-    stringStream.LoadFromFile(aFileName);
-    stringStream.Position := 0;
-    text := GenerateXml(stringStream);
-    writeln(text);
-  finally
-    stringStream.Free;
-  end;
-
+  unitMetrics1.Free;
 end;
 
 end.
