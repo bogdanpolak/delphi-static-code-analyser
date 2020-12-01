@@ -24,7 +24,8 @@ uses
   Model.UnitMetrics in 'Model\Model.UnitMetrics.pas',
   Model.MetricsCalculator in 'Model\Model.MetricsCalculator.pas',
   Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
-  Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas';
+  Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas',
+  Command.GenerateXml in 'Command.GenerateXml.pas';
 
 begin
   try

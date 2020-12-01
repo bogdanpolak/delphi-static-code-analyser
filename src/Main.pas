@@ -21,7 +21,8 @@ procedure ApplicationRun();
 implementation
 
 uses
-  Command.AnalyseUnit;
+  Command.AnalyseUnit,
+  Command.GenerateXml;
 
 const
   ConfigFileName = 'appconfig.json';
@@ -142,7 +143,7 @@ begin
       amFileAnalysis:
         TAnalyseUnitCommand.Execute_CodeAnalysis(fname);
       amGenerateXml:
-        TAnalyseUnitCommand.Execute_GenerateXML(fname);
+        TGenerateXmlCommand.Execute(fname);
     end;
   end;
   if IsDeveloperMode then
