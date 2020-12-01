@@ -15,11 +15,17 @@ uses
   Model.MethodMetrics;
 
 type
+  TReportFormat = (rFormatPlainText, rFormatCsv);
+
   TAnalyseUnitCommand = class
+  private
+    class procedure GenerateCsv(const aUnitName: string;
+      const methods: TArray<TMethodMetrics>); static;
+    class procedure GeneratePlainText(const aUnitName: string;
+      const methods: TArray<TMethodMetrics>); static;
   public
-    class procedure Execute_CodeAnalysis(const aFileName: string;
-      aDisplayLevelHigherThan: Integer = 0); static;
-    class procedure Execute_GenerateCsv(const aFileName: string;
+    class procedure Execute(const aFileName: string;
+      aReportFormat: TReportFormat;
       aDisplayLevelHigherThan: Integer = 0); static;
   end;
 
@@ -28,47 +34,41 @@ implementation
 uses
   Model.MetricsCalculator;
 
-class procedure TAnalyseUnitCommand.Execute_CodeAnalysis(const aFileName
-  : string; aDisplayLevelHigherThan: Integer = 0);
+class procedure TAnalyseUnitCommand.GeneratePlainText(const aUnitName: string;
+  const methods: TArray<TMethodMetrics>);
 var
-  UnitMetrics: TUnitMetrics;
-  idx: Integer;
-  MethodMetrics: TMethodMetrics;
+  method: TMethodMetrics;
   isFirst: Boolean;
 begin
-  try
-    UnitMetrics := TUnitCalculator.Calculate(aFileName);
-  except
-    on E: ESyntaxTreeException do
-    begin
-      writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]));
-      raise;
-    end;
-  end;
   isFirst := True;
-  for idx := 0 to UnitMetrics.MethodsCount - 1 do
+  for method in methods do
   begin
-    MethodMetrics := UnitMetrics.GetMethod(idx);
-    if MethodMetrics.IndentationLevel >= aDisplayLevelHigherThan then
-    begin
-      if isFirst then
-        writeln(UnitMetrics.Name);
-      isFirst := False;
-      writeln('  - ', MethodMetrics.ToString);
-    end;
+    if isFirst then
+      writeln(aUnitName);
+    isFirst := False;
+    writeln(Format('  - %s %s  =  [Lenght: %d] [Level: %d]',
+      [method.Kind, method.FullName, method.Lenght, method.IndentationLevel]));
   end;
-  UnitMetrics.Free;
 end;
 
-class procedure TAnalyseUnitCommand.Execute_GenerateCsv(const aFileName: string;
-  aDisplayLevelHigherThan: Integer);
+class procedure TAnalyseUnitCommand.GenerateCsv(const aUnitName: string;
+  const methods: TArray<TMethodMetrics>);
 var
-  UnitMetrics: TUnitMetrics;
-  MethodMetrics: TMethodMetrics;
+  method: TMethodMetrics;
+begin
+  for method in methods do
+    writeln(Format('"%s"'#9'"%s %s"'#9'%d'#9'%d', [aUnitName, method.Kind,
+      method.FullName, method.Lenght, method.IndentationLevel]));
+end;
+
+class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
+  aReportFormat: TReportFormat; aDisplayLevelHigherThan: Integer = 0);
+var
+  unitMetrics1: TUnitMetrics;
   methods: TArray<TMethodMetrics>;
 begin
   try
-    UnitMetrics := TUnitCalculator.Calculate(aFileName);
+    unitMetrics1 := TUnitCalculator.Calculate(aFileName);
   except
     on E: ESyntaxTreeException do
     begin
@@ -76,12 +76,14 @@ begin
       raise;
     end;
   end;
-  methods := UnitMetrics.FilterMethods(aDisplayLevelHigherThan);
-  for MethodMetrics in methods do
-    writeln(Format('"%s"'#9'"%s %s"'#9'%d'#9'%d', [UnitMetrics.Name,
-      MethodMetrics.Kind, MethodMetrics.FullName, MethodMetrics.Lenght,
-      MethodMetrics.IndentationLevel]));
-  UnitMetrics.Free;
+  methods := unitMetrics1.FilterMethods(aDisplayLevelHigherThan);
+  case aReportFormat of
+    rFormatPlainText:
+      GeneratePlainText(unitMetrics1.Name, methods);
+    rFormatCsv:
+      GenerateCsv(unitMetrics1.Name, methods);
+  end;
+  unitMetrics1.Free;
 end;
 
 end.

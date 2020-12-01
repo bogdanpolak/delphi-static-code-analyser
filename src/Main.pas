@@ -10,8 +10,8 @@ uses
   System.Diagnostics;
 
 type
-  TApplicationMode = (amFolderAnalysis, amFileAnalysis, amGenerateXml,
-    amGenerateCsv);
+  TApplicationMode = (amFolderAnalysis, amGenerateCsv, amFileAnalysis,
+    amGenerateXml);
 
 const
   ApplicationMode: TApplicationMode = amGenerateCsv;
@@ -136,12 +136,12 @@ begin
   begin
     case ApplicationMode of
       amFolderAnalysis:
-        TAnalyseUnitCommand.Execute_CodeAnalysis(fname,
+        TAnalyseUnitCommand.Execute(fname, rFormatPlainText,
           DISPLAY_LevelHigherThan);
       amGenerateCsv:
-        TAnalyseUnitCommand.Execute_GenerateCsv(fname, DISPLAY_LevelHigherThan);
+        TAnalyseUnitCommand.Execute(fname, rFormatCsv, DISPLAY_LevelHigherThan);
       amFileAnalysis:
-        TAnalyseUnitCommand.Execute_CodeAnalysis(fname);
+        TAnalyseUnitCommand.Execute(fname, rFormatPlainText);
       amGenerateXml:
         TGenerateXmlCommand.Execute(fname);
     end;
