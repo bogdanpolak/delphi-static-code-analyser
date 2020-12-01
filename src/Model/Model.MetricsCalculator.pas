@@ -104,11 +104,9 @@ var
   row2: Integer;
   row: Integer;
   Line: string;
-  maxIndent: Integer;
   indent: Integer;
   indentationList: TList<Integer>;
   indentations: TIntegerArray;
-  step: Integer;
 begin
   statements := aMethodNode.FindNode(ntStatements) as TCompoundSyntaxNode;
   if statements=nil then
@@ -121,7 +119,6 @@ begin
     fStringStream.Position := 0;
     sl.LoadFromStream(fStringStream);
     fStringStream.Position := 0;
-    maxIndent := 0;
     for row := row1 to row2 do
     begin
       Line := sl[row - 1];

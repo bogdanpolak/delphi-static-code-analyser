@@ -92,7 +92,6 @@ class procedure TAnalyseUnitCommand.Execute_GenerateCsv(const aFileName: string;
   aDisplayLevelHigherThan: Integer);
 var
   UnitMetrics: TUnitMetrics;
-  idx: Integer;
   MethodMetrics: TMethodMetrics;
   methods: TArray<TMethodMetrics>;
 begin
