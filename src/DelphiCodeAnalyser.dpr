@@ -25,13 +25,13 @@ uses
   Model.MetricsCalculator in 'Model\Model.MetricsCalculator.pas',
   Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
   Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas',
-  Command.GenerateXml in 'Command.GenerateXml.pas';
+  Command.GenerateXml in 'Command.GenerateXml.pas',
+  Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
+  Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas';
 
+var
+  appConfiguration: IAppConfiguration;
 begin
-  try
-    ApplicationRun();
-  except
-    on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
-  end;
+  appConfiguration := BuildAppConfiguration();
+  TMain.Run(appConfiguration);
 end.

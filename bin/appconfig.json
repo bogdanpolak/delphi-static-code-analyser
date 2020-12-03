@@ -1,0 +1,7 @@
+{
+  "SourceFolders": [
+    "..\\test\\data\\mORMot"
+  ],
+  "OutputFile": "..\\test\\Complexity.csv"
+}
+

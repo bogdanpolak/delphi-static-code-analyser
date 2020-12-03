@@ -15,18 +15,19 @@ uses
   Model.MethodMetrics;
 
 type
-  TReportFormat = (rFormatPlainText, rFormatCsv);
-
   TAnalyseUnitCommand = class
   private
-    class procedure GenerateCsv(const aUnitName: string;
-      const methods: TArray<TMethodMetrics>); static;
-    class procedure GeneratePlainText(const aUnitName: string;
-      const methods: TArray<TMethodMetrics>); static;
+    fUnitReport: TStringList;
+    procedure GenerateCsv(const aUnitName: string;
+      const methods: TArray<TMethodMetrics>);
+    procedure GeneratePlainText(const aUnitName: string;
+      const methods: TArray<TMethodMetrics>);
   public
-    class procedure Execute(const aFileName: string;
-      aReportFormat: TReportFormat;
-      aDisplayLevelHigherThan: Integer = 0); static;
+    constructor Create;
+    destructor Destory;
+    procedure Execute(const aFileName: string;
+      aDisplayLevelHigherThan: Integer = 0);
+    function GetUnitReport: TStrings;
   end;
 
 implementation
@@ -34,7 +35,22 @@ implementation
 uses
   Model.MetricsCalculator;
 
-class procedure TAnalyseUnitCommand.GeneratePlainText(const aUnitName: string;
+constructor TAnalyseUnitCommand.Create;
+begin
+  fUnitReport := TStringList.Create;
+end;
+
+destructor TAnalyseUnitCommand.Destory;
+begin
+  fUnitReport.Free;
+end;
+
+function TAnalyseUnitCommand.GetUnitReport: TStrings;
+begin
+  Result := fUnitReport
+end;
+
+procedure TAnalyseUnitCommand.GeneratePlainText(const aUnitName: string;
   const methods: TArray<TMethodMetrics>);
 var
   method: TMethodMetrics;
@@ -51,22 +67,30 @@ begin
   end;
 end;
 
-class procedure TAnalyseUnitCommand.GenerateCsv(const aUnitName: string;
+var
+  CurrentOrderNumber: Integer = 1;
+
+procedure TAnalyseUnitCommand.GenerateCsv(const aUnitName: string;
   const methods: TArray<TMethodMetrics>);
 var
   method: TMethodMetrics;
 begin
   for method in methods do
-    writeln(Format('"%s"'#9'"%s %s"'#9'%d'#9'%d', [aUnitName, method.Kind,
-      method.FullName, method.Lenght, method.IndentationLevel]));
+  begin
+    fUnitReport.Add(Format('%d,"%s","%s %s",%d,%d', [CurrentOrderNumber,
+      aUnitName, method.Kind, method.FullName, method.Lenght,
+      method.IndentationLevel]));
+    inc(CurrentOrderNumber);
+  end;
 end;
 
-class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
-  aReportFormat: TReportFormat; aDisplayLevelHigherThan: Integer = 0);
+procedure TAnalyseUnitCommand.Execute(const aFileName: string;
+  aDisplayLevelHigherThan: Integer = 0);
 var
   unitMetrics1: TUnitMetrics;
   methods: TArray<TMethodMetrics>;
 begin
+  fUnitReport.Clear;
   try
     unitMetrics1 := TUnitCalculator.Calculate(aFileName);
   except
@@ -77,12 +101,8 @@ begin
     end;
   end;
   methods := unitMetrics1.FilterMethods(aDisplayLevelHigherThan);
-  case aReportFormat of
-    rFormatPlainText:
-      GeneratePlainText(unitMetrics1.Name, methods);
-    rFormatCsv:
-      GenerateCsv(unitMetrics1.Name, methods);
-  end;
+  GeneratePlainText(unitMetrics1.Name, methods);
+  GenerateCsv(unitMetrics1.Name, methods);
   unitMetrics1.Free;
 end;
 

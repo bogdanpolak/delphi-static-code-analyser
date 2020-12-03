@@ -6,148 +6,136 @@ uses
   System.SysUtils,
   System.Classes,
   System.IOUtils,
-  System.JSON,
-  System.Diagnostics;
+  System.Generics.Collections,
+  {}
+  Configuration.AppConfig,
+  Command.AnalyseUnit;
 
 type
-  TApplicationMode = (amFolderAnalysis, amGenerateCsv, amFileAnalysis,
-    amGenerateXml);
+  TApplicationMode = (amComplexityAnalysis, amFileAnalysis, amGenerateXml);
 
-const
-  ApplicationMode: TApplicationMode = amGenerateCsv;
-
-procedure ApplicationRun();
+  TMain = class
+  public const
+    ApplicationMode: TApplicationMode = amComplexityAnalysis;
+  private
+    fAppConfiguration: IAppConfiguration;
+    fAnalyseUnitCommand: TAnalyseUnitCommand;
+    fReport: TStringList;
+    function GetUnits: TArray<string>;
+    procedure WriteApplicationTitle;
+    procedure ApplicationRun;
+  public
+    constructor Create(const aAppConfiguration: IAppConfiguration);
+    destructor Destory;
+    class procedure Run(const aAppConfiguration: IAppConfiguration); static;
+  end;
 
 implementation
 
 uses
-  Command.AnalyseUnit,
   Command.GenerateXml;
 
-const
-  ConfigFileName = 'appconfig.json';
+constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
+begin
+  Assert(aAppConfiguration <> nil);
+  fAppConfiguration := aAppConfiguration;
+  fAnalyseUnitCommand := TAnalyseUnitCommand.Create;
+  fReport := TStringList.Create;
+end;
 
-type
-  TAppConfiguration = record
-    DataFolder: string;
-    TestSubFolder: string;
+destructor TMain.Destory;
+begin
+  fReport.Free;
+  fAnalyseUnitCommand.Free;
+end;
+
+procedure TMain.WriteApplicationTitle();
+begin
+  if ApplicationMode in [amComplexityAnalysis, amFileAnalysis] then
+  begin
+    writeln('DelphiAST - Static Code Analyser');
+    writeln('----------------------------------');
   end;
-
-var
-  AppConfiguration: TAppConfiguration;
-
-function GetConfigValue(config: TJSONObject; const aKeyName: string): string;
-var
-  value: string;
-begin
-  if config.TryGetValue<string>(aKeyName, value) then
-    Result := value
-  else
-    raise EAssertionFailed.Create
-      (Format('Can''t find mandatory key in app config: %s', [aKeyName]));
 end;
 
-procedure ReadConfiguration();
+function TMain.GetUnits(): TArray<string>;
 var
-  jsAppConfig: TJSONObject;
-  configFilePath: string;
-begin
-  if FileExists(ConfigFileName) then
-    configFilePath := ConfigFileName
-  else if FileExists(TPath.Combine('../src/', ConfigFileName)) then
-    configFilePath := TPath.Combine('../src/', ConfigFileName)
-  else
-    configFilePath := '';
-  Assert(configFilePath <> '',
-    Format('Can''t run application, missing config file: %s',
-    [ConfigFileName]));
-  jsAppConfig := TJSONObject.ParseJSONValue(TFile.ReadAllText(configFilePath))
-    as TJSONObject;
-  AppConfiguration.DataFolder := GetConfigValue(jsAppConfig, 'dataFolder');
-  AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig,
-    'testSubFolder');
-end;
-
-function GetTestFolder(): string;
-var
-  path2: string;
-begin
-  path2 := TPath.Combine('..\..\', AppConfiguration.DataFolder);
-  if DirectoryExists(AppConfiguration.DataFolder) then
-    Exit(AppConfiguration.DataFolder);
-  if DirectoryExists(path2) then
-    Exit(path2);
-  raise Exception.Create('Can''t find test data folder.');
-end;
-
-function IsDeveloperMode(): boolean;
-var
-  dprFileName: string;
-begin
-  dprFileName := ChangeFileExt(ExtractFileName(ParamStr(0)), '.dpr');
-  Result := FileExists('..\src\' + dprFileName) or FileExists(dprFileName);
-end;
-
-function GetSampleFilePath(const aUnitFileName: string): string;
-begin
-  Result := TPath.Combine(GetTestFolder, aUnitFileName);
-end;
-
-procedure ConsoleApplicationHeader();
-begin
-  writeln('DelphiAST - Static Code Analyser');
-  writeln('----------------------------------');
-end;
-
-function GetUnits(): TArray<string>;
-var
-  folderPath: string;
+  folders: TArray<string>;
+  folder: string;
+  strList: TList<string>;
 begin
   if ApplicationMode = amGenerateXml then
   begin
-    Result := [GetSampleFilePath('testunit.pas')];
+    Result := ['..\test\data\testunit.pas'];
     Exit;
   end
   else if ApplicationMode = amFileAnalysis then
   begin
-    Result := [GetSampleFilePath('test02.pas')];
+    Result := ['..\test\data\test02.pas'];
     Exit;
   end;
-  folderPath := TPath.Combine(GetTestFolder, AppConfiguration.TestSubFolder);
-  if TDirectory.Exists(folderPath) then
-  begin
-    Result := TDirectory.GetFiles(folderPath, '*.pas',
-      TSearchOption.soAllDirectories);
-  end
+  strList := TList<string>.Create();
+  folders := fAppConfiguration.GetSourceFolders();
+  try
+    for folder in folders do
+    begin
+      strList.AddRange(TDirectory.GetFiles(folder, '*.pas',
+        TSearchOption.soAllDirectories));
+    end;
+    Result := strList.ToArray;
+  finally
+    strList.Free;
+  end;
 end;
 
-procedure ApplicationRun();
+procedure TMain.ApplicationRun();
 const
   DISPLAY_LevelHigherThan = 8;
 var
   files: TArray<string>;
   fname: string;
+  unitReport: TStrings;
 begin
-  ReadConfiguration();
-  if ApplicationMode in [amFolderAnalysis, amFileAnalysis] then
-    ConsoleApplicationHeader();
+  fAppConfiguration.Initialize;
   files := GetUnits();
+  WriteApplicationTitle();
+  fReport.Clear;
+  fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
+    'Method', 'Length', 'Complexity']));
   for fname in files do
   begin
     case ApplicationMode of
-      amFolderAnalysis:
-        TAnalyseUnitCommand.Execute(fname, rFormatPlainText,
-          DISPLAY_LevelHigherThan);
-      amGenerateCsv:
-        TAnalyseUnitCommand.Execute(fname, rFormatCsv, DISPLAY_LevelHigherThan);
+      amComplexityAnalysis:
+        begin
+          fAnalyseUnitCommand.Execute(fname, DISPLAY_LevelHigherThan);
+          unitReport := fAnalyseUnitCommand.GetUnitReport();
+          fReport.AddStrings(unitReport);
+        end;
       amFileAnalysis:
-        TAnalyseUnitCommand.Execute(fname, rFormatPlainText);
+        fAnalyseUnitCommand.Execute(fname);
       amGenerateXml:
         TGenerateXmlCommand.Execute(fname);
     end;
   end;
-  if IsDeveloperMode then
-    readln;
+  fname := fAppConfiguration.GetOutputFile();
+  fReport.SaveToFile(fname);
+end;
+
+class procedure TMain.Run(const aAppConfiguration: IAppConfiguration);
+var
+  Main: TMain;
+begin
+  Main := TMain.Create(aAppConfiguration);
+  try
+    try
+      Main.ApplicationRun();
+    finally
+      Main.Free;
+    end
+  except
+    on E: Exception do
+      writeln(E.ClassName, ': ', E.Message);
+  end;
 end;
 
 end.
