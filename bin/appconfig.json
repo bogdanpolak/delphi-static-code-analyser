@@ -1,5 +1,6 @@
 {
-	"dataFolder": "..\\test\\data",
-	"testSubFolder": "mORMot"
+  "SourceFolders": [
+    "..\\test\\data\\mORMot"
+  ]
 }
 

@@ -7,6 +7,7 @@ uses
   System.Classes,
   System.IOUtils,
   System.JSON,
+  System.Generics.Collections,
   System.Diagnostics;
 
 type
@@ -20,10 +21,8 @@ type
     ConfigFileName = 'appconfig.json';
   private
     function GetUnits: TArray<string>;
-    function GetConfigValue(config: TJSONObject;
-      const aKeyName: string): string;
-    function GetSampleFilePath(const aUnitFileName: string): string;
-    function GetTestFolder: string;
+    function GetConfigValue(config: TJSONObject; const aKey: string)
+      : TJSONValue;
     function IsDeveloperMode: boolean;
     procedure ReadConfiguration;
     procedure WriteApplicationTitle;
@@ -40,56 +39,62 @@ uses
 
 type
   TAppConfiguration = record
-    DataFolder: string;
-    TestSubFolder: string;
+    sourceFolders: TArray<string>;
   end;
 
 var
   AppConfiguration: TAppConfiguration;
 
-function TMain.GetConfigValue(config: TJSONObject;
-  const aKeyName: string): string;
+function TMain.GetConfigValue(config: TJSONObject; const aKey: string)
+  : TJSONValue;
 var
-  value: string;
+  value: TJSONValue;
 begin
-  if config.TryGetValue<string>(aKeyName, value) then
+  if config.TryGetValue(aKey, value) then
     Result := value
   else
     raise EAssertionFailed.Create
-      (Format('Can''t find mandatory key in app config: %s', [aKeyName]));
+      (Format('[AppConfig Error] Expected key "%s" not found.', [aKey]));
 end;
 
 procedure TMain.ReadConfiguration();
 var
+  content: string;
   jsAppConfig: TJSONObject;
-  configFilePath: string;
+  key: string;
+  jsonValue: TJSONValue;
+  jsonScrFolders: TJSONArray;
+  idx: Integer;
+  foldername: string;
 begin
-  if FileExists(ConfigFileName) then
-    configFilePath := ConfigFileName
-  else if FileExists(TPath.Combine('../src/', ConfigFileName)) then
-    configFilePath := TPath.Combine('../src/', ConfigFileName)
-  else
-    configFilePath := '';
-  Assert(configFilePath <> '',
-    Format('Can''t run application, missing config file: %s',
-    [ConfigFileName]));
-  jsAppConfig := TJSONObject.ParseJSONValue(TFile.ReadAllText(configFilePath))
-    as TJSONObject;
-  AppConfiguration.DataFolder := GetConfigValue(jsAppConfig, 'dataFolder');
-  AppConfiguration.TestSubFolder := GetConfigValue(jsAppConfig,
-    'testSubFolder');
-end;
-
-function TMain.GetTestFolder(): string;
-var
-  path2: string;
-begin
-  path2 := TPath.Combine('..\..\', AppConfiguration.DataFolder);
-  if DirectoryExists(AppConfiguration.DataFolder) then
-    Exit(AppConfiguration.DataFolder);
-  if DirectoryExists(path2) then
-    Exit(path2);
-  raise Exception.Create('Can''t find test data folder.');
+  Assert(FileExists(ConfigFileName),
+    Format('[AppConfig Error] Missing config file: %s', [ConfigFileName]));
+  content := TFile.ReadAllText(ConfigFileName);
+  jsAppConfig := TJSONObject.ParseJSONValue(content) as TJSONObject;
+  if jsAppConfig = nil then
+    raise EAssertionFailed.Create
+      (Format('[AppConfig Error] Invalid JSON format of file %s',
+      [ConfigFileName]));
+  key := 'SourceFolders';
+  jsonValue := GetConfigValue(jsAppConfig, key);
+  if not(jsonValue is TJSONArray) then
+    raise EAssertionFailed.Create
+      (Format('[AppConfig Error] Key %s has invalid value, expected array.',
+      [key]));
+  jsonScrFolders := jsonValue as TJSONArray;
+  if jsonScrFolders.Count = 0 then
+    raise EAssertionFailed.Create
+      (Format('[AppConfig Error] Key %s has no values', [key]));
+  SetLength(AppConfiguration.sourceFolders, jsonScrFolders.Count);
+  for idx := 0 to jsonScrFolders.Count - 1 do
+  begin
+    foldername := jsonScrFolders[idx].value;
+    if not DirectoryExists(foldername) then
+      raise EAssertionFailed.Create
+        (Format('[AppConfig Error] One of values "%s" is not existing folder',
+        [foldername]));
+    AppConfiguration.sourceFolders[idx] := foldername;
+  end;
 end;
 
 function TMain.IsDeveloperMode(): boolean;
@@ -98,11 +103,6 @@ var
 begin
   dprFileName := ChangeFileExt(ExtractFileName(ParamStr(0)), '.dpr');
   Result := FileExists('..\src\' + dprFileName) or FileExists(dprFileName);
-end;
-
-function TMain.GetSampleFilePath(const aUnitFileName: string): string;
-begin
-  Result := TPath.Combine(GetTestFolder, aUnitFileName);
 end;
 
 procedure TMain.WriteApplicationTitle();
@@ -116,24 +116,30 @@ end;
 
 function TMain.GetUnits(): TArray<string>;
 var
-  folderPath: string;
+  rootFolder: string;
+  strList: TList<string>;
 begin
   if ApplicationMode = amGenerateXml then
   begin
-    Result := [GetSampleFilePath('testunit.pas')];
+    Result := ['..\test\data\testunit.pas'];
     Exit;
   end
   else if ApplicationMode = amFileAnalysis then
   begin
-    Result := [GetSampleFilePath('test02.pas')];
+    Result := ['..\test\data\test02.pas'];
     Exit;
   end;
-  folderPath := TPath.Combine(GetTestFolder, AppConfiguration.TestSubFolder);
-  if TDirectory.Exists(folderPath) then
-  begin
-    Result := TDirectory.GetFiles(folderPath, '*.pas',
-      TSearchOption.soAllDirectories);
-  end
+  strList := TList<string>.Create();
+  try
+    for rootFolder in AppConfiguration.sourceFolders do
+    begin
+      strList.AddRange(TDirectory.GetFiles(rootFolder, '*.pas',
+        TSearchOption.soAllDirectories));
+    end;
+    Result := strList.ToArray;
+  finally
+    strList.Free;
+  end;
 end;
 
 procedure TMain.ApplicationRun();
