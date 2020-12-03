@@ -11,7 +11,7 @@ uses
   Configuration.AppConfig;
 
 type
-  TApplicationMode = (amFolderAnalysis, amGenerateCsv, amFileAnalysis,
+  TApplicationMode = (amGenerateCsv, amFolderAnalysis, amFileAnalysis,
     amGenerateXml);
 
   TMain = class
@@ -36,7 +36,7 @@ uses
 
 constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
-  Assert(aAppConfiguration<>nil);
+  Assert(aAppConfiguration <> nil);
   fAppConfiguration := aAppConfiguration;
 end;
 
@@ -50,6 +50,9 @@ end;
 
 procedure TMain.WriteApplicationTitle();
 begin
+  if ApplicationMode = amGenerateCsv then
+    writeln(Format('"%s","%s","%s","%s","%s"', ['No','Unit location', 'Method', 'Length',
+      'Complexity']));
   if ApplicationMode in [amFolderAnalysis, amFileAnalysis] then
   begin
     writeln('DelphiAST - Static Code Analyser');

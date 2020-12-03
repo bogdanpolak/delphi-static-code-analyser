@@ -51,14 +51,20 @@ begin
   end;
 end;
 
+var
+  CurrentOrderNumber: Integer = 1;
+
 class procedure TAnalyseUnitCommand.GenerateCsv(const aUnitName: string;
   const methods: TArray<TMethodMetrics>);
 var
   method: TMethodMetrics;
 begin
   for method in methods do
-    writeln(Format('"%s"'#9'"%s %s"'#9'%d'#9'%d', [aUnitName, method.Kind,
-      method.FullName, method.Lenght, method.IndentationLevel]));
+  begin
+    writeln(Format('%d,"%s","%s %s",%d,%d', [CurrentOrderNumber, aUnitName,
+      method.Kind, method.FullName, method.Lenght, method.IndentationLevel]));
+    inc(CurrentOrderNumber);
+  end;
 end;
 
 class procedure TAnalyseUnitCommand.Execute(const aFileName: string;
