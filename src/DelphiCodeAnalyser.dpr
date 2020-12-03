@@ -28,10 +28,5 @@ uses
   Command.GenerateXml in 'Command.GenerateXml.pas';
 
 begin
-  try
-    ApplicationRun();
-  except
-    on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
-  end;
+  TMain.Run();
 end.

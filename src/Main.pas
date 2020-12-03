@@ -13,19 +13,30 @@ type
   TApplicationMode = (amFolderAnalysis, amGenerateCsv, amFileAnalysis,
     amGenerateXml);
 
-const
-  ApplicationMode: TApplicationMode = amGenerateCsv;
-
-procedure ApplicationRun();
+  TMain = class
+  public const
+    ApplicationMode: TApplicationMode = amGenerateCsv;
+  public const
+    ConfigFileName = 'appconfig.json';
+  private
+    function GetUnits: TArray<string>;
+    function GetConfigValue(config: TJSONObject;
+      const aKeyName: string): string;
+    function GetSampleFilePath(const aUnitFileName: string): string;
+    function GetTestFolder: string;
+    function IsDeveloperMode: boolean;
+    procedure ReadConfiguration;
+    procedure WriteApplicationTitle;
+    procedure ApplicationRun;
+  public
+    class procedure Run; static;
+  end;
 
 implementation
 
 uses
   Command.AnalyseUnit,
   Command.GenerateXml;
-
-const
-  ConfigFileName = 'appconfig.json';
 
 type
   TAppConfiguration = record
@@ -36,7 +47,8 @@ type
 var
   AppConfiguration: TAppConfiguration;
 
-function GetConfigValue(config: TJSONObject; const aKeyName: string): string;
+function TMain.GetConfigValue(config: TJSONObject;
+  const aKeyName: string): string;
 var
   value: string;
 begin
@@ -47,7 +59,7 @@ begin
       (Format('Can''t find mandatory key in app config: %s', [aKeyName]));
 end;
 
-procedure ReadConfiguration();
+procedure TMain.ReadConfiguration();
 var
   jsAppConfig: TJSONObject;
   configFilePath: string;
@@ -68,7 +80,7 @@ begin
     'testSubFolder');
 end;
 
-function GetTestFolder(): string;
+function TMain.GetTestFolder(): string;
 var
   path2: string;
 begin
@@ -80,7 +92,7 @@ begin
   raise Exception.Create('Can''t find test data folder.');
 end;
 
-function IsDeveloperMode(): boolean;
+function TMain.IsDeveloperMode(): boolean;
 var
   dprFileName: string;
 begin
@@ -88,18 +100,21 @@ begin
   Result := FileExists('..\src\' + dprFileName) or FileExists(dprFileName);
 end;
 
-function GetSampleFilePath(const aUnitFileName: string): string;
+function TMain.GetSampleFilePath(const aUnitFileName: string): string;
 begin
   Result := TPath.Combine(GetTestFolder, aUnitFileName);
 end;
 
-procedure ConsoleApplicationHeader();
+procedure TMain.WriteApplicationTitle();
 begin
-  writeln('DelphiAST - Static Code Analyser');
-  writeln('----------------------------------');
+  if ApplicationMode in [amFolderAnalysis, amFileAnalysis] then
+  begin
+    writeln('DelphiAST - Static Code Analyser');
+    writeln('----------------------------------');
+  end;
 end;
 
-function GetUnits(): TArray<string>;
+function TMain.GetUnits(): TArray<string>;
 var
   folderPath: string;
 begin
@@ -121,7 +136,7 @@ begin
   end
 end;
 
-procedure ApplicationRun();
+procedure TMain.ApplicationRun();
 const
   DISPLAY_LevelHigherThan = 8;
 var
@@ -129,8 +144,7 @@ var
   fname: string;
 begin
   ReadConfiguration();
-  if ApplicationMode in [amFolderAnalysis, amFileAnalysis] then
-    ConsoleApplicationHeader();
+  WriteApplicationTitle();
   files := GetUnits();
   for fname in files do
   begin
@@ -148,6 +162,23 @@ begin
   end;
   if IsDeveloperMode then
     readln;
+end;
+
+class procedure TMain.Run;
+var
+  Main: TMain;
+begin
+  Main := TMain.Create;
+  try
+    try
+      Main.ApplicationRun();
+    finally
+      Main.Free;
+    end
+  except
+    on E: Exception do
+      writeln(E.ClassName, ': ', E.Message);
+  end;
 end;
 
 end.
