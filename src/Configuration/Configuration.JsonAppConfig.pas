@@ -17,6 +17,7 @@ type
     fConfigFileName: string;
     fLoaded: boolean;
     fSourceFolders: TArray<string>;
+    fOutputFile: string;
     function GetConfigValue(config: TJSONObject;
       const aKey: string): TJSONValue;
     procedure ReadConfiguration;
@@ -24,7 +25,7 @@ type
     constructor Create;
     procedure Initialize;
     function GetSourceFolders: TArray<string>;
-
+    function GetOutputFile: string;
   end;
 
 function BuildAppConfiguration(): IAppConfiguration;
@@ -52,6 +53,12 @@ begin
   else
     raise EAssertionFailed.Create
       (Format('[AppConfig Error] Expected key "%s" not found.', [aKey]));
+end;
+
+function TJsonAppConfiguration.GetOutputFile: string;
+begin
+  Initialize;
+  Result := fOutputFile;
 end;
 
 function TJsonAppConfiguration.GetSourceFolders: TArray<string>;
@@ -106,6 +113,12 @@ begin
         [foldername]));
     fSourceFolders[idx] := foldername;
   end;
+  //
+  fOutputFile := GetConfigValue(jsAppConfig, 'OutputFile').Value;
+  if fOutputFile='' then
+    raise EAssertionFailed.Create
+      (Format('[AppConfig Error] Expected output file path in "%s".',
+      [key]));
 end;
 
 end.

@@ -8,52 +8,50 @@ uses
   System.IOUtils,
   System.Generics.Collections,
   {}
-  Configuration.AppConfig;
+  Configuration.AppConfig,
+  Command.AnalyseUnit;
 
 type
-  TApplicationMode = (amGenerateCsv, amFolderAnalysis, amFileAnalysis,
-    amGenerateXml);
+  TApplicationMode = (amComplexityAnalysis, amFileAnalysis, amGenerateXml);
 
   TMain = class
   public const
-    ApplicationMode: TApplicationMode = amGenerateCsv;
+    ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
+    fAnalyseUnitCommand: TAnalyseUnitCommand;
+    fReport: TStringList;
     function GetUnits: TArray<string>;
-    function IsDeveloperMode: boolean;
     procedure WriteApplicationTitle;
     procedure ApplicationRun;
   public
     constructor Create(const aAppConfiguration: IAppConfiguration);
+    destructor Destory;
     class procedure Run(const aAppConfiguration: IAppConfiguration); static;
   end;
 
 implementation
 
 uses
-  Command.AnalyseUnit,
   Command.GenerateXml;
 
 constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
   Assert(aAppConfiguration <> nil);
   fAppConfiguration := aAppConfiguration;
+  fAnalyseUnitCommand := TAnalyseUnitCommand.Create;
+  fReport := TStringList.Create;
 end;
 
-function TMain.IsDeveloperMode(): boolean;
-var
-  dprFileName: string;
+destructor TMain.Destory;
 begin
-  dprFileName := ChangeFileExt(ExtractFileName(ParamStr(0)), '.dpr');
-  Result := FileExists('..\src\' + dprFileName) or FileExists(dprFileName);
+  fReport.Free;
+  fAnalyseUnitCommand.Free;
 end;
 
 procedure TMain.WriteApplicationTitle();
 begin
-  if ApplicationMode = amGenerateCsv then
-    writeln(Format('"%s","%s","%s","%s","%s"', ['No','Unit location', 'Method', 'Length',
-      'Complexity']));
-  if ApplicationMode in [amFolderAnalysis, amFileAnalysis] then
+  if ApplicationMode in [amComplexityAnalysis, amFileAnalysis] then
   begin
     writeln('DelphiAST - Static Code Analyser');
     writeln('----------------------------------');
@@ -96,26 +94,31 @@ const
 var
   files: TArray<string>;
   fname: string;
+  unitReport: TStrings;
 begin
   fAppConfiguration.Initialize;
   files := GetUnits();
   WriteApplicationTitle();
+  fReport.Clear;
+  fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
+    'Method', 'Length', 'Complexity']));
   for fname in files do
   begin
     case ApplicationMode of
-      amFolderAnalysis:
-        TAnalyseUnitCommand.Execute(fname, rFormatPlainText,
-          DISPLAY_LevelHigherThan);
-      amGenerateCsv:
-        TAnalyseUnitCommand.Execute(fname, rFormatCsv, DISPLAY_LevelHigherThan);
+      amComplexityAnalysis:
+        begin
+          fAnalyseUnitCommand.Execute(fname, DISPLAY_LevelHigherThan);
+          unitReport := fAnalyseUnitCommand.GetUnitReport();
+          fReport.AddStrings(unitReport);
+        end;
       amFileAnalysis:
-        TAnalyseUnitCommand.Execute(fname, rFormatPlainText);
+        fAnalyseUnitCommand.Execute(fname);
       amGenerateXml:
         TGenerateXmlCommand.Execute(fname);
     end;
   end;
-  if IsDeveloperMode then
-    readln;
+  fname := fAppConfiguration.GetOutputFile();
+  fReport.SaveToFile(fname);
 end;
 
 class procedure TMain.Run(const aAppConfiguration: IAppConfiguration);
