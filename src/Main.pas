@@ -6,9 +6,9 @@ uses
   System.SysUtils,
   System.Classes,
   System.IOUtils,
-  System.JSON,
   System.Generics.Collections,
-  System.Diagnostics;
+  {}
+  Configuration.AppConfig;
 
 type
   TApplicationMode = (amFolderAnalysis, amGenerateCsv, amFileAnalysis,
@@ -17,18 +17,15 @@ type
   TMain = class
   public const
     ApplicationMode: TApplicationMode = amGenerateCsv;
-  public const
-    ConfigFileName = 'appconfig.json';
   private
+    fAppConfiguration: IAppConfiguration;
     function GetUnits: TArray<string>;
-    function GetConfigValue(config: TJSONObject; const aKey: string)
-      : TJSONValue;
     function IsDeveloperMode: boolean;
-    procedure ReadConfiguration;
     procedure WriteApplicationTitle;
     procedure ApplicationRun;
   public
-    class procedure Run; static;
+    constructor Create(const aAppConfiguration: IAppConfiguration);
+    class procedure Run(const aAppConfiguration: IAppConfiguration); static;
   end;
 
 implementation
@@ -37,64 +34,10 @@ uses
   Command.AnalyseUnit,
   Command.GenerateXml;
 
-type
-  TAppConfiguration = record
-    sourceFolders: TArray<string>;
-  end;
-
-var
-  AppConfiguration: TAppConfiguration;
-
-function TMain.GetConfigValue(config: TJSONObject; const aKey: string)
-  : TJSONValue;
-var
-  value: TJSONValue;
+constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
-  if config.TryGetValue(aKey, value) then
-    Result := value
-  else
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Expected key "%s" not found.', [aKey]));
-end;
-
-procedure TMain.ReadConfiguration();
-var
-  content: string;
-  jsAppConfig: TJSONObject;
-  key: string;
-  jsonValue: TJSONValue;
-  jsonScrFolders: TJSONArray;
-  idx: Integer;
-  foldername: string;
-begin
-  Assert(FileExists(ConfigFileName),
-    Format('[AppConfig Error] Missing config file: %s', [ConfigFileName]));
-  content := TFile.ReadAllText(ConfigFileName);
-  jsAppConfig := TJSONObject.ParseJSONValue(content) as TJSONObject;
-  if jsAppConfig = nil then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Invalid JSON format of file %s',
-      [ConfigFileName]));
-  key := 'SourceFolders';
-  jsonValue := GetConfigValue(jsAppConfig, key);
-  if not(jsonValue is TJSONArray) then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Key %s has invalid value, expected array.',
-      [key]));
-  jsonScrFolders := jsonValue as TJSONArray;
-  if jsonScrFolders.Count = 0 then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Key %s has no values', [key]));
-  SetLength(AppConfiguration.sourceFolders, jsonScrFolders.Count);
-  for idx := 0 to jsonScrFolders.Count - 1 do
-  begin
-    foldername := jsonScrFolders[idx].value;
-    if not DirectoryExists(foldername) then
-      raise EAssertionFailed.Create
-        (Format('[AppConfig Error] One of values "%s" is not existing folder',
-        [foldername]));
-    AppConfiguration.sourceFolders[idx] := foldername;
-  end;
+  Assert(aAppConfiguration<>nil);
+  fAppConfiguration := aAppConfiguration;
 end;
 
 function TMain.IsDeveloperMode(): boolean;
@@ -116,7 +59,8 @@ end;
 
 function TMain.GetUnits(): TArray<string>;
 var
-  rootFolder: string;
+  folders: TArray<string>;
+  folder: string;
   strList: TList<string>;
 begin
   if ApplicationMode = amGenerateXml then
@@ -130,10 +74,11 @@ begin
     Exit;
   end;
   strList := TList<string>.Create();
+  folders := fAppConfiguration.GetSourceFolders();
   try
-    for rootFolder in AppConfiguration.sourceFolders do
+    for folder in folders do
     begin
-      strList.AddRange(TDirectory.GetFiles(rootFolder, '*.pas',
+      strList.AddRange(TDirectory.GetFiles(folder, '*.pas',
         TSearchOption.soAllDirectories));
     end;
     Result := strList.ToArray;
@@ -149,9 +94,9 @@ var
   files: TArray<string>;
   fname: string;
 begin
-  ReadConfiguration();
-  WriteApplicationTitle();
+  fAppConfiguration.Initialize;
   files := GetUnits();
+  WriteApplicationTitle();
   for fname in files do
   begin
     case ApplicationMode of
@@ -170,11 +115,11 @@ begin
     readln;
 end;
 
-class procedure TMain.Run;
+class procedure TMain.Run(const aAppConfiguration: IAppConfiguration);
 var
   Main: TMain;
 begin
-  Main := TMain.Create;
+  Main := TMain.Create(aAppConfiguration);
   try
     try
       Main.ApplicationRun();
