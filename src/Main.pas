@@ -16,7 +16,7 @@ type
 
   TMain = class
   public const
-    ApplicationMode: TApplicationMode = amComplexityAnalysis;
+    ApplicationMode: TApplicationMode = amFileAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
     fAnalyseUnitCommand: TAnalyseUnitCommand;
@@ -71,7 +71,7 @@ begin
   end
   else if ApplicationMode = amFileAnalysis then
   begin
-    Result := ['..\test\data\test02.pas'];
+    Result := ['..\test\data\test04.pas'];
     Exit;
   end;
   strList := TList<string>.Create();
