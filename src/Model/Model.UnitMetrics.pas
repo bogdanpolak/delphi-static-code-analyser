@@ -49,7 +49,7 @@ begin
   list := TList<TMethodMetrics>.Create;
   try
     for method in fMethods do
-      if method.IndentationLevel>aDisplayLevelHigherThan then
+      if method.Complexity>aDisplayLevelHigherThan then
         list.Add(method);
     Result := list.ToArray;
   finally

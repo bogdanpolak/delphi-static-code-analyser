@@ -63,7 +63,7 @@ begin
       writeln(aUnitName);
     isFirst := False;
     writeln(Format('  - %s %s  =  [Lenght: %d] [Level: %d]',
-      [method.Kind, method.FullName, method.Lenght, method.IndentationLevel]));
+      [method.Kind, method.FullName, method.Lenght, method.Complexity]));
   end;
 end;
 
@@ -79,7 +79,7 @@ begin
   begin
     fUnitReport.Add(Format('%d,"%s","%s %s",%d,%d', [CurrentOrderNumber,
       aUnitName, method.Kind, method.FullName, method.Lenght,
-      method.IndentationLevel]));
+      method.Complexity]));
     inc(CurrentOrderNumber);
   end;
 end;

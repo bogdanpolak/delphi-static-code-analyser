@@ -13,7 +13,6 @@ begin
          {$ifdef CPUX64}fMethodsCount*16{$endif}
          {$ifdef CPUARM}fMethodsCount*12{$endif}
          {$ifdef CPUAARCH64}($120 shr 2)+fMethodsCount*28{$endif};
-  fFakeStub := TFakeStubBuffer.Reserve(tmp);
 end;
 
 end.

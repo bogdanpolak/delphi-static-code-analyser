@@ -6,6 +6,7 @@ uses
   System.SysUtils,
   System.Classes,
   System.IOUtils,
+  System.Math,
   System.Generics.Collections,
   {}
   Configuration.AppConfig,
@@ -16,7 +17,7 @@ type
 
   TMain = class
   public const
-    ApplicationMode: TApplicationMode = amFileAnalysis;
+    ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
     fAnalyseUnitCommand: TAnalyseUnitCommand;
@@ -89,14 +90,14 @@ begin
 end;
 
 procedure TMain.ApplicationRun();
-const
-  DISPLAY_LevelHigherThan = 8;
 var
   files: TArray<string>;
   fname: string;
   unitReport: TStrings;
+  minimalComplexity: Integer;
 begin
   fAppConfiguration.Initialize;
+  minimalComplexity := IfThen (ApplicationMode = amComplexityAnalysis, 8, 0);
   files := GetUnits();
   WriteApplicationTitle();
   fReport.Clear;
@@ -105,14 +106,13 @@ begin
   for fname in files do
   begin
     case ApplicationMode of
-      amComplexityAnalysis:
+      amComplexityAnalysis,
+      amFileAnalysis:
         begin
-          fAnalyseUnitCommand.Execute(fname, DISPLAY_LevelHigherThan);
+          fAnalyseUnitCommand.Execute(fname, minimalComplexity);
           unitReport := fAnalyseUnitCommand.GetUnitReport();
           fReport.AddStrings(unitReport);
         end;
-      amFileAnalysis:
-        fAnalyseUnitCommand.Execute(fname);
       amGenerateXml:
         TGenerateXmlCommand.Execute(fname);
     end;
