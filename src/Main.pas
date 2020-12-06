@@ -114,7 +114,7 @@ begin
           fReport.AddStrings(unitReport);
         end;
       amGenerateXml:
-        TGenerateXmlCommand.Execute(fname);
+        TGenerateXmlCommand.Generate(fname);
     end;
   end;
   fname := fAppConfiguration.GetOutputFile();
