@@ -6,6 +6,7 @@ uses
   System.SysUtils,
   System.Classes,
   System.IOUtils,
+  System.Math,
   System.Generics.Collections,
   {}
   Configuration.AppConfig,
@@ -19,7 +20,7 @@ type
     ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
-    fAnalyseUnitCommand: TAnalyseUnitCommand;
+    cmdAnalyseUnit: TAnalyseUnitCommand;
     fReport: TStringList;
     function GetUnits: TArray<string>;
     procedure WriteApplicationTitle;
@@ -39,14 +40,14 @@ constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
   Assert(aAppConfiguration <> nil);
   fAppConfiguration := aAppConfiguration;
-  fAnalyseUnitCommand := TAnalyseUnitCommand.Create;
+  cmdAnalyseUnit := TAnalyseUnitCommand.Create;
   fReport := TStringList.Create;
 end;
 
 destructor TMain.Destory;
 begin
   fReport.Free;
-  fAnalyseUnitCommand.Free;
+  cmdAnalyseUnit.Free;
 end;
 
 procedure TMain.WriteApplicationTitle();
@@ -71,7 +72,7 @@ begin
   end
   else if ApplicationMode = amFileAnalysis then
   begin
-    Result := ['..\test\data\test02.pas'];
+    Result := ['..\test\data\test04.pas'];
     Exit;
   end;
   strList := TList<string>.Create();
@@ -89,14 +90,14 @@ begin
 end;
 
 procedure TMain.ApplicationRun();
-const
-  DISPLAY_LevelHigherThan = 8;
 var
   files: TArray<string>;
   fname: string;
   unitReport: TStrings;
+  minimalComplexity: Integer;
 begin
   fAppConfiguration.Initialize;
+  minimalComplexity := IfThen (ApplicationMode = amComplexityAnalysis, 8, 0);
   files := GetUnits();
   WriteApplicationTitle();
   fReport.Clear;
@@ -105,16 +106,15 @@ begin
   for fname in files do
   begin
     case ApplicationMode of
-      amComplexityAnalysis:
+      amComplexityAnalysis,
+      amFileAnalysis:
         begin
-          fAnalyseUnitCommand.Execute(fname, DISPLAY_LevelHigherThan);
-          unitReport := fAnalyseUnitCommand.GetUnitReport();
+          cmdAnalyseUnit.Execute(fname, minimalComplexity);
+          unitReport := cmdAnalyseUnit.GetUnitReport();
           fReport.AddStrings(unitReport);
         end;
-      amFileAnalysis:
-        fAnalyseUnitCommand.Execute(fname);
       amGenerateXml:
-        TGenerateXmlCommand.Execute(fname);
+        TGenerateXmlCommand.Generate(fname);
     end;
   end;
   fname := fAppConfiguration.GetOutputFile();

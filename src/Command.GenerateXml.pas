@@ -11,51 +11,21 @@ uses
 
 type
   TGenerateXmlCommand = class
-  private
-    class function GenerateXml(const aStream: TStream): string; static;
   public
-    class procedure Execute(const aFileName: string); static;
+    class procedure Generate(const aFileName: string); static;
   end;
 
 implementation
 
-class function TGenerateXmlCommand.GenerateXml(const aStream: TStream): string;
+class procedure TGenerateXmlCommand.Generate(const aFileName: string);
 var
-  treeBuilder: TPasSyntaxTreeBuilder;
-  syntaxTree: TSyntaxNode;
+  syntaxRootNode: TSyntaxNode;
 begin
-  Result := '';
-  treeBuilder := TPasSyntaxTreeBuilder.Create;
+  syntaxRootNode := TPasSyntaxTreeBuilder.Run(aFileName);
   try
-    try
-      syntaxTree := treeBuilder.Run(aStream);
-      Result := TSyntaxTreeWriter.ToXML(syntaxTree, True);
-      syntaxTree.Free;
-    except
-      on E: ESyntaxTreeException do
-      begin
-        Result := Format('[%d, %d] %s', [E.Line, E.Col, E.Message]) + sLineBreak
-          + sLineBreak + TSyntaxTreeWriter.ToXML(E.syntaxTree, True);
-      end;
-    end;
+    writeln(TSyntaxTreeWriter.ToXML(syntaxRootNode, True));
   finally
-    treeBuilder.Free;
-  end;
-end;
-
-class procedure TGenerateXmlCommand.Execute(const aFileName: string);
-var
-  stringStream: TStringStream;
-  text: string;
-begin
-  stringStream := TStringStream.Create;
-  try
-    stringStream.LoadFromFile(aFileName);
-    stringStream.Position := 0;
-    text := GenerateXml(stringStream);
-    writeln(text);
-  finally
-    stringStream.Free;
+    syntaxRootNode.Free;
   end;
 end;
 

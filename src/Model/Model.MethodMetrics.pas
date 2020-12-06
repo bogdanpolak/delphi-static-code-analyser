@@ -12,16 +12,16 @@ type
     fKind: string;
     fFullName: string;
     fLenght: Integer;
-    fIndentationLevel: Integer;
+    fComplexity: Integer;
   public
     constructor Create(const aKind: string; const aFullName: string);
-    procedure SetLenght(aLength: Integer);
-    procedure SetMaxIndentation(aMaxIndentation: Integer);
+    function SetLenght(aLength: Integer): TMethodMetrics;
+    function SetComplexity(aMaxIndentation: Integer): TMethodMetrics;
     function ToString(): string; override;
     property Kind: string read fKind;
     property FullName: string read fFullName;
     property Lenght: Integer read fLenght;
-    property IndentationLevel: Integer read fIndentationLevel;
+    property Complexity: Integer read fComplexity;
   end;
 
 implementation
@@ -32,20 +32,22 @@ begin
   self.fFullName := aFullName;
 end;
 
-procedure TMethodMetrics.SetLenght(aLength: Integer);
+function TMethodMetrics.SetLenght(aLength: Integer): TMethodMetrics;
 begin
   self.fLenght := aLength;
+  Result := self;
 end;
 
-procedure TMethodMetrics.SetMaxIndentation(aMaxIndentation: Integer);
+function TMethodMetrics.SetComplexity(aMaxIndentation: Integer): TMethodMetrics;
 begin
-  self.fIndentationLevel := aMaxIndentation;
+  self.fComplexity := aMaxIndentation;
+  Result := self;
 end;
 
 function TMethodMetrics.ToString: string;
 begin
   Result := Format('%s %s  =  [Lenght: %d] [Level: %d]',
-    [Kind, FullName, Lenght, fIndentationLevel])
+    [Kind, FullName, Lenght, fComplexity])
 end;
 
 end.
