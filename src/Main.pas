@@ -20,7 +20,7 @@ type
     ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
-    fAnalyseUnitCommand: TAnalyseUnitCommand;
+    cmdAnalyseUnit: TAnalyseUnitCommand;
     fReport: TStringList;
     function GetUnits: TArray<string>;
     procedure WriteApplicationTitle;
@@ -40,14 +40,14 @@ constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
   Assert(aAppConfiguration <> nil);
   fAppConfiguration := aAppConfiguration;
-  fAnalyseUnitCommand := TAnalyseUnitCommand.Create;
+  cmdAnalyseUnit := TAnalyseUnitCommand.Create;
   fReport := TStringList.Create;
 end;
 
 destructor TMain.Destory;
 begin
   fReport.Free;
-  fAnalyseUnitCommand.Free;
+  cmdAnalyseUnit.Free;
 end;
 
 procedure TMain.WriteApplicationTitle();
@@ -109,8 +109,8 @@ begin
       amComplexityAnalysis,
       amFileAnalysis:
         begin
-          fAnalyseUnitCommand.Execute(fname, minimalComplexity);
-          unitReport := fAnalyseUnitCommand.GetUnitReport();
+          cmdAnalyseUnit.Execute(fname, minimalComplexity);
+          unitReport := cmdAnalyseUnit.GetUnitReport();
           fReport.AddStrings(unitReport);
         end;
       amGenerateXml:
