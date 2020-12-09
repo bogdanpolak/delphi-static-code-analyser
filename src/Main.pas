@@ -114,7 +114,9 @@ begin
       amComplexityAnalysis, amFileAnalysis:
         begin
           if ApplicationMode = amComplexityAnalysis then
-            fMethodFilters.Add(TComplexityGreaterThen.Create(7));
+            fMethodFilters.AddRange([
+              { } TComplexityGreaterThen.Create(7),
+              { } TLengthGreaterThen.Create(200)]);
           cmdAnalyseUnit.Execute(fname, fMethodFilters);
           unitReport := cmdAnalyseUnit.GetUnitReport();
           fReport.AddStrings(unitReport);
