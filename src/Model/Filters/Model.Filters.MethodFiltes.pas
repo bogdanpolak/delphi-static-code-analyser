@@ -4,8 +4,7 @@ interface
 
 uses
   System.Generics.Collections,
-
-  {DelphiCodeAnalyser}
+  {--}
   Model.MethodMetrics;
 
 type
@@ -22,6 +21,8 @@ type
     procedure Add(aMethodFilter: TMethodFilter);
     procedure AddRange(aMethodFilters: TArray<TMethodFilter>);
     function IsMatching(const aMethodMetrics: TMethodMetrics): boolean;
+    procedure Clear;
+    function Count: Integer;
   private
     fFilters: TObjectList<TMethodFilter>;
   end;
@@ -49,6 +50,16 @@ end;
 procedure TMethodFilters.AddRange(aMethodFilters: TArray<TMethodFilter>);
 begin
   fFilters.AddRange(aMethodFilters);
+end;
+
+procedure TMethodFilters.Clear;
+begin
+  fFilters.Clear;
+end;
+
+function TMethodFilters.Count: Integer;
+begin
+  Result := fFilters.Count;
 end;
 
 function TMethodFilters.IsMatching(

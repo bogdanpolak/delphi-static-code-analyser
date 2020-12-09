@@ -10,7 +10,8 @@ uses
   System.Generics.Collections,
   {}
   Configuration.AppConfig,
-  Command.AnalyseUnit;
+  Command.AnalyseUnit,
+  Model.Filters.MethodFiltes;
 
 type
   TApplicationMode = (amComplexityAnalysis, amFileAnalysis, amGenerateXml);
@@ -22,6 +23,7 @@ type
     fAppConfiguration: IAppConfiguration;
     cmdAnalyseUnit: TAnalyseUnitCommand;
     fReport: TStringList;
+    fMethodFilters: TMethodFilters;
     function GetUnits: TArray<string>;
     procedure WriteApplicationTitle;
     procedure ApplicationRun;
@@ -34,7 +36,8 @@ type
 implementation
 
 uses
-  Command.GenerateXml;
+  Command.GenerateXml,
+  Model.Filters.ComplexityGreater;
 
 constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
@@ -42,10 +45,13 @@ begin
   fAppConfiguration := aAppConfiguration;
   cmdAnalyseUnit := TAnalyseUnitCommand.Create;
   fReport := TStringList.Create;
+  fMethodFilters := TMethodFilters.Create;
+  fMethodFilters := TMethodFilters.Create;
 end;
 
 destructor TMain.Destory;
 begin
+  fMethodFilters.Free;
   fReport.Free;
   cmdAnalyseUnit.Free;
 end;
@@ -94,10 +100,9 @@ var
   files: TArray<string>;
   fname: string;
   unitReport: TStrings;
-  minimalComplexity: Integer;
 begin
   fAppConfiguration.Initialize;
-  minimalComplexity := IfThen (ApplicationMode = amComplexityAnalysis, 8, 0);
+  fMethodFilters.Clear;
   files := GetUnits();
   WriteApplicationTitle();
   fReport.Clear;
@@ -106,10 +111,11 @@ begin
   for fname in files do
   begin
     case ApplicationMode of
-      amComplexityAnalysis,
-      amFileAnalysis:
+      amComplexityAnalysis, amFileAnalysis:
         begin
-          cmdAnalyseUnit.Execute(fname, minimalComplexity);
+          if ApplicationMode = amComplexityAnalysis then
+            fMethodFilters.Add(TComplexityGreaterThen.Create(7));
+          cmdAnalyseUnit.Execute(fname, fMethodFilters);
           unitReport := cmdAnalyseUnit.GetUnitReport();
           fReport.AddStrings(unitReport);
         end;
@@ -119,6 +125,7 @@ begin
   end;
   fname := fAppConfiguration.GetOutputFile();
   fReport.SaveToFile(fname);
+  readln;
 end;
 
 class procedure TMain.Run(const aAppConfiguration: IAppConfiguration);

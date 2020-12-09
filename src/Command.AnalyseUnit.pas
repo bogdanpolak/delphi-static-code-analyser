@@ -12,12 +12,14 @@ uses
   IncludeHandler,
   {}
   Model.UnitMetrics,
-  Model.MethodMetrics;
+  Model.MethodMetrics,
+  Model.Filters.MethodFiltes;
 
 type
   TAnalyseUnitCommand = class
   private
     fUnitReport: TStringList;
+
     procedure GenerateCsv(const aUnitName: string;
       const methods: TArray<TMethodMetrics>);
     procedure GeneratePlainText(const aUnitName: string;
@@ -25,8 +27,7 @@ type
   public
     constructor Create;
     destructor Destory;
-    procedure Execute(const aFileName: string;
-      aDisplayLevelHigherThan: Integer = 0);
+    procedure Execute(const aFileName: string; aMethodFilters: TMethodFilters);
     function GetUnitReport: TStrings;
   end;
 
@@ -85,7 +86,7 @@ begin
 end;
 
 procedure TAnalyseUnitCommand.Execute(const aFileName: string;
-  aDisplayLevelHigherThan: Integer = 0);
+  aMethodFilters: TMethodFilters);
 var
   unitMetrics1: TUnitMetrics;
   methods: TArray<TMethodMetrics>;
@@ -100,7 +101,7 @@ begin
       raise;
     end;
   end;
-  methods := unitMetrics1.FilterMethods(aDisplayLevelHigherThan);
+  methods := unitMetrics1.FilterMethods(aMethodFilters);
   GeneratePlainText(unitMetrics1.Name, methods);
   GenerateCsv(unitMetrics1.Name, methods);
   unitMetrics1.Free;

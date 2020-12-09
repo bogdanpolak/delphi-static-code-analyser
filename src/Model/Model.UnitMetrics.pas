@@ -5,7 +5,9 @@ interface
 uses
   System.Generics.Collections,
   Model.MethodMetrics,
-  Utils.IntegerArray;
+  Utils.IntegerArray,
+  {--}
+  Model.Filters.MethodFiltes;
 
 type
   TUnitMetrics = class
@@ -19,8 +21,8 @@ type
     function MethodsCount(): Integer;
     function GetMethod(aIdx: Integer): TMethodMetrics;
     procedure AddMethod(const aMethodMetics: TMethodMetrics);
-    function FilterMethods(aDisplayLevelHigherThan: Integer)
-      : TArray<TMethodMetrics>;
+    function FilterMethods(aMethodFilters: TMethodFilters)
+  : TArray<TMethodMetrics>;
   end;
 
 implementation
@@ -37,19 +39,19 @@ begin
   inherited;
 end;
 
-function TUnitMetrics.FilterMethods(aDisplayLevelHigherThan: Integer)
+function TUnitMetrics.FilterMethods(aMethodFilters: TMethodFilters)
   : TArray<TMethodMetrics>;
 var
   list: TList<TMethodMetrics>;
   method: TMethodMetrics;
 begin
-  if aDisplayLevelHigherThan=0 then
+  if aMethodFilters.Count=0 then
     Exit(fMethods.ToArray);
   Result := nil;
   list := TList<TMethodMetrics>.Create;
   try
     for method in fMethods do
-      if method.Complexity>aDisplayLevelHigherThan then
+      if aMethodFilters.IsMatching(method) then
         list.Add(method);
     Result := list.ToArray;
   finally
