@@ -37,7 +37,7 @@ implementation
 
 uses
   Command.GenerateXml,
-  Model.Filters.ComplexityGreater;
+  Model.Filters.Concrete;
 
 constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
