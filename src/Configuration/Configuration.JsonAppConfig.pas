@@ -18,6 +18,8 @@ type
     fLoaded: boolean;
     fSourceFolders: TArray<string>;
     fOutputFile: string;
+    fComplexityLevel: Integer;
+    fMethodLength: Integer;
     function GetConfigValue(config: TJSONObject;
       const aKey: string): TJSONValue;
     procedure ReadConfiguration;
@@ -26,6 +28,8 @@ type
     procedure Initialize;
     function GetSourceFolders: TArray<string>;
     function GetOutputFile: string;
+    function GetFilterComplexityLevel: integer;
+    function GetFilterMethodLength: integer;
   end;
 
 function BuildAppConfiguration(): IAppConfiguration;
@@ -67,6 +71,18 @@ begin
   Result := fSourceFolders;
 end;
 
+function TJsonAppConfiguration.GetFilterComplexityLevel: integer;
+begin
+  Initialize;
+  Result := fComplexityLevel;
+end;
+
+function TJsonAppConfiguration.GetFilterMethodLength: integer;
+begin
+  Initialize;
+  Result := fMethodLength;
+end;
+
 procedure TJsonAppConfiguration.Initialize;
 begin
   if fLoaded then
@@ -84,6 +100,7 @@ var
   jsonScrFolders: TJSONArray;
   idx: Integer;
   foldername: string;
+  jsonFilters: TJSONObject;
 begin
   Assert(FileExists(fConfigFileName),
     Format('[AppConfig Error] Missing config file: %s', [fConfigFileName]));
@@ -113,12 +130,29 @@ begin
         [foldername]));
     fSourceFolders[idx] := foldername;
   end;
-  //
-  fOutputFile := GetConfigValue(jsAppConfig, 'OutputFile').Value;
+  // --
+  key := 'OutputFile';
+  fOutputFile := GetConfigValue(jsAppConfig, key).Value;
   if fOutputFile='' then
     raise EAssertionFailed.Create
       (Format('[AppConfig Error] Expected output file path in "%s".',
       [key]));
+  // --
+  key := 'Filters';
+  jsonValue := GetConfigValue(jsAppConfig, key);
+  if fOutputFile='' then
+    raise EAssertionFailed.Create
+      (Format('[AppConfig Error] Expected output file path in "%s".',
+      [key]));
+  if not(jsonValue is TJSONObject) then
+    raise EAssertionFailed.Create
+      (Format('[AppConfig Error] Key %s has invalid value, expected object.',
+      [key]));
+  jsonFilters := jsonValue as TJSONObject;
+  fComplexityLevel := 0;
+  fMethodLength := 0;
+  jsonFilters.TryGetValue<Integer>('ComplexityLevel',fComplexityLevel);
+  jsonFilters.TryGetValue<Integer>('ComplexityLevel',fMethodLength);
 end;
 
 end.

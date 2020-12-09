@@ -2,6 +2,10 @@
   "SourceFolders": [
     "..\\test\\data\\mORMot"
   ],
+  "Filters": {
+        "ComplexityLevel": 6,
+        "MethodLength": 120
+  },
   "OutputFile": "..\\test\\Complexity.csv"
 }
 

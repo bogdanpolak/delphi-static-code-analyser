@@ -71,16 +71,6 @@ var
   folder: string;
   strList: TList<string>;
 begin
-  if ApplicationMode = amGenerateXml then
-  begin
-    Result := ['..\test\data\testunit.pas'];
-    Exit;
-  end
-  else if ApplicationMode = amFileAnalysis then
-  begin
-    Result := ['..\test\data\test04.pas'];
-    Exit;
-  end;
   strList := TList<string>.Create();
   folders := fAppConfiguration.GetSourceFolders();
   try
@@ -100,34 +90,38 @@ var
   files: TArray<string>;
   fname: string;
   unitReport: TStrings;
+  complexityLevel: Integer;
+  methodLength: Integer;
 begin
   fAppConfiguration.Initialize;
   fMethodFilters.Clear;
-  files := GetUnits();
   WriteApplicationTitle();
-  fReport.Clear;
-  fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
-    'Method', 'Length', 'Complexity']));
-  for fname in files do
-  begin
-    case ApplicationMode of
-      amComplexityAnalysis, amFileAnalysis:
+  case ApplicationMode of
+    amComplexityAnalysis:
+      begin
+        complexityLevel := fAppConfiguration.GetFilterComplexityLevel();
+        methodLength := fAppConfiguration.GetFilterMethodLength();
+        fMethodFilters.AddRange([
+          { } TComplexityGreaterEqual.Create(complexityLevel),
+          { } TLengthGreaterEqual.Create(methodLength)]);
+        fReport.Clear;
+        fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
+          'Method', 'Length', 'Complexity']));
+        files := GetUnits();
+        for fname in files do
         begin
-          if ApplicationMode = amComplexityAnalysis then
-            fMethodFilters.AddRange([
-              { } TComplexityGreaterEqual.Create(6),
-              { } TLengthGreaterEqual.Create(120)]);
           cmdAnalyseUnit.Execute(fname, fMethodFilters);
           unitReport := cmdAnalyseUnit.GetUnitReport();
           fReport.AddStrings(unitReport);
         end;
-      amGenerateXml:
-        TGenerateXmlCommand.Generate(fname);
-    end;
+        fname := fAppConfiguration.GetOutputFile();
+        fReport.SaveToFile(fname);
+      end;
+    amFileAnalysis:
+        cmdAnalyseUnit.Execute('..\test\data\test04.pas', fMethodFilters);
+    amGenerateXml:
+      TGenerateXmlCommand.Generate('..\test\data\testunit.pas');
   end;
-  fname := fAppConfiguration.GetOutputFile();
-  fReport.SaveToFile(fname);
-  readln;
 end;
 
 class procedure TMain.Run(const aAppConfiguration: IAppConfiguration);
@@ -145,6 +139,7 @@ begin
     on E: Exception do
       writeln(E.ClassName, ': ', E.Message);
   end;
+  readln;
 end;
 
 end.
