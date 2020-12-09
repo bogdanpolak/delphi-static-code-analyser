@@ -27,7 +27,9 @@ uses
   Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas',
   Command.GenerateXml in 'Command.GenerateXml.pas',
   Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
-  Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas';
+  Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas',
+  Model.Filters.MethodFiltes in 'Model\Filters\Model.Filters.MethodFiltes.pas',
+  Model.Filters.Concrete in 'Model\Filters\Model.Filters.Concrete.pas';
 
 var
   appConfiguration: IAppConfiguration;
