@@ -4,7 +4,7 @@
   ],
   "Filters": {
         "ComplexityLevel": 6,
-        "MethodLength": 120
+        "MethodLength": 130
   },
   "OutputFile": "..\\test\\Complexity.csv"
 }

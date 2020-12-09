@@ -152,7 +152,7 @@ begin
   fComplexityLevel := 0;
   fMethodLength := 0;
   jsonFilters.TryGetValue<Integer>('ComplexityLevel',fComplexityLevel);
-  jsonFilters.TryGetValue<Integer>('ComplexityLevel',fMethodLength);
+  jsonFilters.TryGetValue<Integer>('MethodLength',fMethodLength);
 end;
 
 end.
