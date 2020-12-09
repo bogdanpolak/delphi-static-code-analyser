@@ -115,8 +115,8 @@ begin
         begin
           if ApplicationMode = amComplexityAnalysis then
             fMethodFilters.AddRange([
-              { } TComplexityGreaterThen.Create(7),
-              { } TLengthGreaterThen.Create(200)]);
+              { } TComplexityGreaterEqual.Create(6),
+              { } TLengthGreaterEqual.Create(120)]);
           cmdAnalyseUnit.Execute(fname, fMethodFilters);
           unitReport := cmdAnalyseUnit.GetUnitReport();
           fReport.AddStrings(unitReport);
