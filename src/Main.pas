@@ -46,7 +46,6 @@ begin
   cmdAnalyseUnit := TAnalyseUnitCommand.Create;
   fReport := TStringList.Create;
   fMethodFilters := TMethodFilters.Create;
-  fMethodFilters := TMethodFilters.Create;
 end;
 
 destructor TMain.Destory;
