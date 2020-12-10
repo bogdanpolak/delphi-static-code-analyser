@@ -29,7 +29,9 @@ uses
   Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
   Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas',
   Model.Filters.MethodFiltes in 'Model\Filters\Model.Filters.MethodFiltes.pas',
-  Model.Filters.Concrete in 'Model\Filters\Model.Filters.Concrete.pas';
+  Model.Filters.Concrete in 'Model\Filters\Model.Filters.Concrete.pas',
+  Model.ClassMetrics in 'Model\Model.ClassMetrics.pas',
+  Model.ProjectMetrics in 'Model\Model.ProjectMetrics.pas';
 
 var
   appConfiguration: IAppConfiguration;
