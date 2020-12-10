@@ -4,9 +4,9 @@ interface
 
 uses
   System.Generics.Collections,
-  Model.MethodMetrics,
-  Utils.IntegerArray,
   {--}
+  Utils.IntegerArray,
+  Model.MethodMetrics,
   Model.Filters.MethodFiltes;
 
 type
@@ -22,7 +22,7 @@ type
     function GetMethod(aIdx: Integer): TMethodMetrics;
     procedure AddMethod(const aMethodMetics: TMethodMetrics);
     function FilterMethods(aMethodFilters: TMethodFilters)
-  : TArray<TMethodMetrics>;
+      : TArray<TMethodMetrics>;
   end;
 
 implementation
@@ -45,7 +45,7 @@ var
   list: TList<TMethodMetrics>;
   method: TMethodMetrics;
 begin
-  if aMethodFilters.Count=0 then
+  if aMethodFilters.Count = 0 then
     Exit(fMethods.ToArray);
   Result := nil;
   list := TList<TMethodMetrics>.Create;
