@@ -10,7 +10,7 @@ uses
   System.Generics.Collections,
   {}
   Configuration.AppConfig,
-  Command.AnalyseUnit,
+  Command.AnalyseProject,
   Filters.Method;
 
 type

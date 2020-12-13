@@ -1,4 +1,4 @@
-unit Command.AnalyseUnit;
+unit Command.AnalyseProject;
 
 interface
 
