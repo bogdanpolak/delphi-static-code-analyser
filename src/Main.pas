@@ -21,8 +21,7 @@ type
     ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
-    cmdAnalyseUnit: TAnalyseUnitCommand;
-    fReport: TStringList;
+    cmdAnalyseProject: TAnalyseProjectCommand;
     fMethodFilters: TMethodFilters;
     function GetUnits: TArray<string>;
     procedure WriteApplicationTitle;
@@ -44,16 +43,14 @@ constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
   Assert(aAppConfiguration <> nil);
   fAppConfiguration := aAppConfiguration;
-  cmdAnalyseUnit := TAnalyseUnitCommand.Create;
-  fReport := TStringList.Create;
+  cmdAnalyseProject := TAnalyseProjectCommand.Create;
   fMethodFilters := TMethodFilters.Create;
 end;
 
 destructor TMain.Destory;
 begin
   fMethodFilters.Free;
-  fReport.Free;
-  cmdAnalyseUnit.Free;
+  cmdAnalyseProject.Free;
 end;
 
 procedure TMain.WriteApplicationTitle();
@@ -104,32 +101,20 @@ end;
 procedure TMain.ApplicationRun();
 var
   files: TArray<string>;
-  fname: string;
-  unitReport: TStrings;
 begin
   fAppConfiguration.Initialize;
-  DefineFiltersUsingConfiguration();
-  WriteApplicationTitle();
   case ApplicationMode of
     amComplexityAnalysis:
       begin
-        fReport.Clear;
-        fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
-          'Method', 'Length', 'Complexity']));
+        WriteApplicationTitle();
         files := GetUnits();
-        for fname in files do
-        begin
-          cmdAnalyseUnit.Execute(fname, fMethodFilters);
-          unitReport := cmdAnalyseUnit.GetUnitReport();
-          fReport.AddStrings(unitReport);
-        end;
-        fname := fAppConfiguration.GetOutputFile();
-        fReport.SaveToFile(fname);
+        DefineFiltersUsingConfiguration();
+        cmdAnalyseProject.Execute(files, fMethodFilters);
+        cmdAnalyseProject.SaveReportToFile(fAppConfiguration.GetOutputFile());
       end;
     amFileAnalysis:
       begin
-        fMethodFilters.Clear;
-        cmdAnalyseUnit.Execute('..\test\data\test04.pas', fMethodFilters);
+        cmdAnalyseProject.Execute(['..\test\data\test04.pas']);
       end;
     amGenerateXml:
       begin
@@ -154,6 +139,7 @@ begin
     on E: Exception do
       writeln(E.ClassName, ': ', E.Message);
   end;
+  Write('... [press enter to close]');
   readln;
 end;
 

@@ -19,7 +19,6 @@ uses
   SimpleParser in '..\components\DelphiAST\SimpleParser\SimpleParser.pas',
   SimpleParser.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Types.pas',
   IncludeHandler in 'IncludeHandler.pas',
-  {}
   Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas',
   Metrics.UnitMethod in 'Logic\Metrics\Metrics.UnitMethod.pas',
   Metrics.UnitM in 'Logic\Metrics\Metrics.UnitM.pas',
@@ -29,10 +28,8 @@ uses
   Filters.Method in 'Logic\Filters\Filters.Method.pas',
   Filters.Concrete in 'Logic\Filters\Filters.Concrete.pas',
   Calculators.UnitMetrics in 'Logic\Calculators\Calculators.UnitMetrics.pas',
-  {}
   Main in 'Main.pas',
-  Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
-  Command.GenerateXml in 'Command.GenerateXml.pas',
+  Command.AnalyseProject in 'Command.AnalyseProject.pas',
   Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
   Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas';
 
