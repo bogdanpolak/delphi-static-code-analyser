@@ -21,10 +21,8 @@ type
   private
     fReport: TStringList;
     fProjectMetrics: TProjectMetrics;
-    procedure GenerateCsv(const aUnitName: string;
-      const methods: TArray<TUnitMethodMetrics>);
-    procedure GeneratePlainText(const aUnitName: string;
-      const methods: TArray<TUnitMethodMetrics>);
+    procedure GenerateCsv(const methods: TArray<TUnitMethodMetrics>);
+    procedure GeneratePlainText(const methods: TArray<TUnitMethodMetrics>);
   public
     constructor Create;
     destructor Destory;
@@ -55,18 +53,18 @@ begin
   fReport.SaveToFile(aFileName);
 end;
 
-procedure TAnalyseProjectCommand.GeneratePlainText(const aUnitName: string;
-  const methods: TArray<TUnitMethodMetrics>);
+procedure TAnalyseProjectCommand.GeneratePlainText(const methods
+  : TArray<TUnitMethodMetrics>);
 var
   Method: TUnitMethodMetrics;
-  isFirst: Boolean;
+  previousUnit: string;
 begin
-  isFirst := True;
+  previousUnit := '';
   for Method in methods do
   begin
-    if isFirst then
-      writeln(aUnitName);
-    isFirst := False;
+    if Method.UnitName <> previousUnit then
+      writeln(Method.UnitName);
+    previousUnit := Method.UnitName;
     writeln(Format('  - %s %s  =  [Lenght: %d] [Level: %d]',
       [Method.Kind, Method.FullName, Method.Lenght, Method.Complexity]));
   end;
@@ -75,15 +73,18 @@ end;
 var
   CurrentOrderNumber: Integer = 1;
 
-procedure TAnalyseProjectCommand.GenerateCsv(const aUnitName: string;
-  const methods: TArray<TUnitMethodMetrics>);
+procedure TAnalyseProjectCommand.GenerateCsv(const methods
+  : TArray<TUnitMethodMetrics>);
 var
   Method: TUnitMethodMetrics;
 begin
+  fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
+    'Method', 'Length', 'Complexity']));
   for Method in methods do
   begin
-    fReport.Add(Format('%d,"%s","%s %s",%d,%d', [CurrentOrderNumber, aUnitName,
-      Method.Kind, Method.FullName, Method.Lenght, Method.Complexity]));
+    fReport.Add(Format('%d,"%s","%s %s",%d,%d', [CurrentOrderNumber,
+      Method.UnitName, Method.Kind, Method.FullName, Method.Lenght,
+      Method.Complexity]));
     inc(CurrentOrderNumber);
   end;
 end;
@@ -93,18 +94,13 @@ procedure TAnalyseProjectCommand.Execute(const aFiles: TArray<string>;
 var
   unitFileName: string;
   methods: TArray<TUnitMethodMetrics>;
-  metrics: TUnitMetrics;
 begin
   fReport.Clear;
-  fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
-    'Method', 'Length', 'Complexity']));
   for unitFileName in aFiles do
-  begin
-    metrics := TProjectCalculator.Calculate(unitFileName,fProjectMetrics);
-    methods := metrics.FilterMethods(aMethodFilters);
-    GeneratePlainText(metrics.Name, methods);
-    GenerateCsv(metrics.Name, methods);
-  end;
+    TProjectCalculator.Calculate(unitFileName, fProjectMetrics);
+  methods := fProjectMetrics.FilterMethods(aMethodFilters);
+  GeneratePlainText(methods);
+  GenerateCsv(methods);
 end;
 
 end.

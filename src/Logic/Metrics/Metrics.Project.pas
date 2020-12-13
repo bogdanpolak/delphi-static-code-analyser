@@ -6,7 +6,9 @@ uses
   System.Generics.Collections,
   {--}
   Metrics.ClassM,
-  Metrics.UnitM;
+  Metrics.UnitM,
+  Metrics.UnitMethod,
+  Filters.Method;
 
 type
   TProjectMetrics = class
@@ -16,12 +18,17 @@ type
   public
     constructor Create();
     destructor Destroy; override;
+    {}
     function ClassCount(): Integer;
     function GetClass(aIdx: Integer): TClassMetrics;
     function AddClass(const aClassMetrics: TClassMetrics): TProjectMetrics;
+    {}
     function UnitCount(): Integer;
     function GetUnit(aIdx: Integer): TUnitMetrics;
     function AddUnit(const aUnitMetrics: TUnitMetrics): TProjectMetrics;
+    {}
+    function FilterMethods(
+      aMethodFilters: TMethodFilters): TArray<TUnitMethodMetrics>;
   end;
 
 implementation
@@ -70,6 +77,36 @@ end;
 function TProjectMetrics.UnitCount: Integer;
 begin
   Result := fUnits.Count;
+end;
+
+function TProjectMetrics.FilterMethods(aMethodFilters: TMethodFilters)
+  : TArray<TUnitMethodMetrics>;
+var
+  unitMetrics: TUnitMetrics;
+  filteredMethods: TList<TUnitMethodMetrics>;
+  methods: TList<TUnitMethodMetrics>;
+  method: TUnitMethodMetrics;
+begin
+  filteredMethods := TList<TUnitMethodMetrics>.Create;
+  try
+    for unitMetrics in fUnits do
+    begin
+      methods := unitMetrics.GetMethods();
+      if (aMethodFilters=nil) or (aMethodFilters.Count = 0) then
+      begin
+        filteredMethods.AddRange(methods);
+      end
+      else
+      begin
+        for method in methods do
+          if aMethodFilters.IsMatching(method) then
+            filteredMethods.Add(method);
+      end;
+    end;
+    Result := filteredMethods.ToArray;
+  finally
+    filteredMethods.Free;
+  end;
 end;
 
 end.
