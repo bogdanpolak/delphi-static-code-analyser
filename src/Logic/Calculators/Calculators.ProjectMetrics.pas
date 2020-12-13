@@ -19,7 +19,7 @@ uses
   Metrics.Project;
 
 type
-  TUnitCalculator = class
+  TProjectCalculator = class
   private
     function CalculateMethodLength(const aMethodNode
       : TCompoundSyntaxNode): Integer;
@@ -47,7 +47,7 @@ uses
 var
   fLineIndetation: TDictionary<Integer, Integer>;
 
-procedure TUnitCalculator.MinIndetationNodeWalker(const aNode: TSyntaxNode);
+procedure TProjectCalculator.MinIndetationNodeWalker(const aNode: TSyntaxNode);
 var
   child: TSyntaxNode;
   indentation: Integer;
@@ -66,7 +66,7 @@ begin
   end;
 end;
 
-function TUnitCalculator.CalculateMethodMaxIndent(slCode: TStringList;
+function TProjectCalculator.CalculateMethodMaxIndent(slCode: TStringList;
   const aMethodNode: TCompoundSyntaxNode): Integer;
 var
   statements: TCompoundSyntaxNode;
@@ -101,7 +101,7 @@ begin
   end;
 end;
 
-function TUnitCalculator.CalculateMethodLength(const aMethodNode
+function TProjectCalculator.CalculateMethodLength(const aMethodNode
   : TCompoundSyntaxNode): Integer;
 var
   statements: TCompoundSyntaxNode;
@@ -113,7 +113,7 @@ begin
     Result := 1;
 end;
 
-function TUnitCalculator.CalculateMethod(slUnitCode: TStringList;
+function TProjectCalculator.CalculateMethod(slUnitCode: TStringList;
   aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
 var
   methodKind: string;
@@ -131,7 +131,7 @@ end;
 
 // ---------------------------------------------------------------------
 
-function TUnitCalculator.CalculateUnit(const aFileName: string;
+function TProjectCalculator.CalculateUnit(const aFileName: string;
   slUnitCode: TStringList; const aRootNode: TSyntaxNode): TUnitMetrics;
 var
   implementationNode: TSyntaxNode;
@@ -149,12 +149,12 @@ begin
     end;
 end;
 
-class function TUnitCalculator.Calculate(const aFileName: string;
+class function TProjectCalculator.Calculate(const aFileName: string;
   const aProjectMetrics: TProjectMetrics): TUnitMetrics;
 var
   syntaxRootNode: TSyntaxNode;
   slUnitCode: TStringList;
-  calculator: TUnitCalculator;
+  calculator: TProjectCalculator;
 begin
   {
     if aIncludeFolder <> '' then
@@ -167,7 +167,7 @@ begin
     slUnitCode := TStringList.Create;
     try
       slUnitCode.LoadFromFile(aFileName);
-      calculator := TUnitCalculator.Create();
+      calculator := TProjectCalculator.Create();
       try
         Result := calculator.CalculateUnit(aFileName, slUnitCode,
           syntaxRootNode);

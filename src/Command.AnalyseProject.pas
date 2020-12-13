@@ -100,7 +100,7 @@ begin
     'Method', 'Length', 'Complexity']));
   for unitFileName in aFiles do
   begin
-    metrics := TUnitCalculator.Calculate(unitFileName,fProjectMetrics);
+    metrics := TProjectCalculator.Calculate(unitFileName,fProjectMetrics);
     methods := metrics.FilterMethods(aMethodFilters);
     GeneratePlainText(metrics.Name, methods);
     GenerateCsv(metrics.Name, methods);
