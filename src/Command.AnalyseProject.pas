@@ -62,11 +62,11 @@ begin
   previousUnit := '';
   for Method in methods do
   begin
-    if Method.NameOfUnit <> previousUnit then
-      writeln(Method.NameOfUnit);
-    previousUnit := Method.NameOfUnit;
+    if Method.FullUnitName <> previousUnit then
+      writeln(Method.FullUnitName);
+    previousUnit := Method.FullUnitName;
     writeln(Format('  - %s %s  =  [Lenght: %d] [Level: %d]',
-      [Method.Kind, Method.FullName, Method.Lenght, Method.Complexity]));
+      [Method.Kind, Method.Name, Method.Lenght, Method.Complexity]));
   end;
 end;
 
@@ -83,7 +83,7 @@ begin
   for Method in methods do
   begin
     fReport.Add(Format('%d,"%s","%s %s",%d,%d', [CurrentOrderNumber,
-      Method.NameOfUnit, Method.Kind, Method.FullName, Method.Lenght,
+      Method.FullUnitName, Method.Kind, Method.Name, Method.Lenght,
       Method.Complexity]));
     inc(CurrentOrderNumber);
   end;
