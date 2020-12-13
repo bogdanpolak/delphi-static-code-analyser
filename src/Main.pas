@@ -26,6 +26,7 @@ type
     fMethodFilters: TMethodFilters;
     function GetUnits: TArray<string>;
     procedure WriteApplicationTitle;
+    procedure DefineFiltersUsingConfiguration;
     procedure ApplicationRun;
   public
     constructor Create(const aAppConfiguration: IAppConfiguration);
@@ -84,28 +85,34 @@ begin
   end;
 end;
 
+procedure TMain.DefineFiltersUsingConfiguration();
+var
+  complexityLevel: Integer;
+  methodLength: Integer;
+begin
+  fMethodFilters.Clear;
+  complexityLevel := fAppConfiguration.GetFilterComplexityLevel();
+  methodLength := fAppConfiguration.GetFilterMethodLength();
+  if fAppConfiguration.HasFilters() then
+  begin
+    fMethodFilters.AddRange([
+      { } TComplexityGreaterEqual.Create(complexityLevel),
+      { } TLengthGreaterEqual.Create(methodLength)]);
+  end;
+end;
+
 procedure TMain.ApplicationRun();
 var
   files: TArray<string>;
   fname: string;
   unitReport: TStrings;
-  complexityLevel: Integer;
-  methodLength: Integer;
 begin
   fAppConfiguration.Initialize;
-  fMethodFilters.Clear;
+  DefineFiltersUsingConfiguration();
   WriteApplicationTitle();
   case ApplicationMode of
     amComplexityAnalysis:
       begin
-        complexityLevel := fAppConfiguration.GetFilterComplexityLevel();
-        methodLength := fAppConfiguration.GetFilterMethodLength();
-        if fAppConfiguration.HasFilters() then
-        begin
-          fMethodFilters.AddRange([
-            { } TComplexityGreaterEqual.Create(complexityLevel),
-            { } TLengthGreaterEqual.Create(methodLength)]);
-        end;
         fReport.Clear;
         fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
           'Method', 'Length', 'Complexity']));
@@ -120,9 +127,15 @@ begin
         fReport.SaveToFile(fname);
       end;
     amFileAnalysis:
+      begin
+        fMethodFilters.Clear;
         cmdAnalyseUnit.Execute('..\test\data\test04.pas', fMethodFilters);
+      end;
     amGenerateXml:
-      TGenerateXmlCommand.Generate('..\test\data\testunit.pas');
+      begin
+        fMethodFilters.Clear;
+        TGenerateXmlCommand.Generate('..\test\data\testunit.pas');
+      end;
   end;
 end;
 
