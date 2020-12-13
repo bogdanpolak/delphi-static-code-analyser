@@ -13,16 +13,16 @@ type
   TUnitMetrics = class
   private
     fName: string;
-    fMethods: TObjectList<TUnitMethod>;
+    fMethods: TObjectList<TUnitMethodMetrics>;
   public
     constructor Create(const aUnitName: string);
     destructor Destroy; override;
     property Name: string read fName;
     function MethodsCount(): Integer;
-    function GetMethod(aIdx: Integer): TUnitMethod;
-    procedure AddMethod(const aMethodMetics: TUnitMethod);
+    function GetMethod(aIdx: Integer): TUnitMethodMetrics;
+    procedure AddMethod(const aMethodMetics: TUnitMethodMetrics);
     function FilterMethods(aMethodFilters: TMethodFilters)
-      : TArray<TUnitMethod>;
+      : TArray<TUnitMethodMetrics>;
   end;
 
 implementation
@@ -30,7 +30,7 @@ implementation
 constructor TUnitMetrics.Create(const aUnitName: string);
 begin
   self.fName := aUnitName;
-  fMethods := TObjectList<TUnitMethod>.Create();
+  fMethods := TObjectList<TUnitMethodMetrics>.Create();
 end;
 
 destructor TUnitMetrics.Destroy;
@@ -40,15 +40,15 @@ begin
 end;
 
 function TUnitMetrics.FilterMethods(aMethodFilters: TMethodFilters)
-  : TArray<TUnitMethod>;
+  : TArray<TUnitMethodMetrics>;
 var
-  list: TList<TUnitMethod>;
-  method: TUnitMethod;
+  list: TList<TUnitMethodMetrics>;
+  method: TUnitMethodMetrics;
 begin
   if aMethodFilters.Count = 0 then
     Exit(fMethods.ToArray);
   Result := nil;
-  list := TList<TUnitMethod>.Create;
+  list := TList<TUnitMethodMetrics>.Create;
   try
     for method in fMethods do
       if aMethodFilters.IsMatching(method) then
@@ -59,7 +59,7 @@ begin
   end;
 end;
 
-function TUnitMetrics.GetMethod(aIdx: Integer): TUnitMethod;
+function TUnitMetrics.GetMethod(aIdx: Integer): TUnitMethodMetrics;
 begin
   Result := fMethods[aIdx];
 end;
@@ -69,7 +69,7 @@ begin
   Result := fMethods.Count;
 end;
 
-procedure TUnitMetrics.AddMethod(const aMethodMetics: TUnitMethod);
+procedure TUnitMetrics.AddMethod(const aMethodMetics: TUnitMethodMetrics);
 begin
   fMethods.Add(aMethodMetics);
 end;

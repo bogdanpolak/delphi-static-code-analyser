@@ -28,7 +28,7 @@ type
     function CalculateUnit(const aFileName: string; slUnitCode: TStringList;
       const aRootNode: TSyntaxNode): TUnitMetrics;
     function CalculateMethod(slUnitCode: TStringList;
-      aMethodNode: TCompoundSyntaxNode): TUnitMethod;
+      aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
   public
     class function Calculate(const aFileName: string): TUnitMetrics; static;
   end;
@@ -112,7 +112,7 @@ begin
 end;
 
 function TUnitCalculator.CalculateMethod(slUnitCode: TStringList;
-  aMethodNode: TCompoundSyntaxNode): TUnitMethod;
+  aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
 var
   methodKind: string;
   methodName: string;
@@ -123,7 +123,7 @@ begin
   methodName := aMethodNode.GetAttribute(anName);
   methodLength := CalculateMethodLength(aMethodNode);
   methodComplexity := CalculateMethodMaxIndent(slUnitCode, aMethodNode);
-  Result := TUnitMethod.Create(methodKind, methodName)
+  Result := TUnitMethodMetrics.Create(methodKind, methodName)
     .SetLenght(methodLength).SetComplexity(methodComplexity);
 end;
 
@@ -133,7 +133,7 @@ function TUnitCalculator.CalculateUnit(const aFileName: string;
   slUnitCode: TStringList; const aRootNode: TSyntaxNode): TUnitMetrics;
 var
   implementationNode: TSyntaxNode;
-  methodMetics: TUnitMethod;
+  methodMetics: TUnitMethodMetrics;
   child: TSyntaxNode;
 begin
   // ---- interfaceNode := rootNode.FindNode(ntInterface);

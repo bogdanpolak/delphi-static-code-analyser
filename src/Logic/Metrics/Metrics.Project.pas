@@ -8,7 +8,7 @@ uses
   Metrics.ClassM;
 
 type
-  TProject = class
+  TProjectMetrics = class
   private
     fClasses: TObjectList<TClassMetrics>;
   public
@@ -21,30 +21,30 @@ type
 
 implementation
 
-constructor TProject.Create;
+constructor TProjectMetrics.Create;
 begin
   fClasses := TObjectList<TClassMetrics>.Create();
 end;
 
-destructor TProject.Destroy;
+destructor TProjectMetrics.Destroy;
 begin
   fClasses.Free;
   inherited;
 end;
 
-procedure TProject.AddClass(const aClassMetrics: TClassMetrics);
+procedure TProjectMetrics.AddClass(const aClassMetrics: TClassMetrics);
 begin
   fClasses.Add(aClassMetrics);
 end;
 
-function TProject.ClassCount: Integer;
+function TProjectMetrics.ClassCount: Integer;
 begin
-  Result:=fClasses.Count;
+  Result := fClasses.Count;
 end;
 
-function TProject.GetClass(aIdx: Integer): TClassMetrics;
+function TProjectMetrics.GetClass(aIdx: Integer): TClassMetrics;
 begin
-  Result:=fClasses.Items[aIdx];
+  Result := fClasses.Items[aIdx];
 end;
 
 end.

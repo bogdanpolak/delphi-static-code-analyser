@@ -10,7 +10,7 @@ uses
 type
   TMethodFilter = class abstract
   public
-    function IsMatching(const aMethodMetrics: TUnitMethod): boolean;
+    function IsMatching(const aMethodMetrics: TUnitMethodMetrics): boolean;
       virtual; abstract;
   end;
 
@@ -20,7 +20,7 @@ type
     destructor Destroy; override;
     procedure Add(aMethodFilter: TMethodFilter);
     procedure AddRange(aMethodFilters: TArray<TMethodFilter>);
-    function IsMatching(const aMethodMetrics: TUnitMethod): boolean;
+    function IsMatching(const aMethodMetrics: TUnitMethodMetrics): boolean;
     procedure Clear;
     function Count: Integer;
   private
@@ -63,7 +63,7 @@ begin
 end;
 
 function TMethodFilters.IsMatching(
-  const aMethodMetrics: TUnitMethod): boolean;
+  const aMethodMetrics: TUnitMethodMetrics): boolean;
 var
   filter: TMethodFilter;
 begin

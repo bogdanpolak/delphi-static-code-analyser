@@ -21,9 +21,9 @@ type
     fUnitReport: TStringList;
 
     procedure GenerateCsv(const aUnitName: string;
-      const methods: TArray<TUnitMethod>);
+      const methods: TArray<TUnitMethodMetrics>);
     procedure GeneratePlainText(const aUnitName: string;
-      const methods: TArray<TUnitMethod>);
+      const methods: TArray<TUnitMethodMetrics>);
   public
     constructor Create;
     destructor Destory;
@@ -52,9 +52,9 @@ begin
 end;
 
 procedure TAnalyseUnitCommand.GeneratePlainText(const aUnitName: string;
-  const methods: TArray<TUnitMethod>);
+  const methods: TArray<TUnitMethodMetrics>);
 var
-  method: TUnitMethod;
+  method: TUnitMethodMetrics;
   isFirst: Boolean;
 begin
   isFirst := True;
@@ -72,9 +72,9 @@ var
   CurrentOrderNumber: Integer = 1;
 
 procedure TAnalyseUnitCommand.GenerateCsv(const aUnitName: string;
-  const methods: TArray<TUnitMethod>);
+  const methods: TArray<TUnitMethodMetrics>);
 var
-  method: TUnitMethod;
+  method: TUnitMethodMetrics;
 begin
   for method in methods do
   begin
@@ -89,7 +89,7 @@ procedure TAnalyseUnitCommand.Execute(const aFileName: string;
   aMethodFilters: TMethodFilters);
 var
   unitMetrics1: TUnitMetrics;
-  methods: TArray<TUnitMethod>;
+  methods: TArray<TUnitMethodMetrics>;
 begin
   fUnitReport.Clear;
   try

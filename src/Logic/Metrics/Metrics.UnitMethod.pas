@@ -7,7 +7,7 @@ uses
   Utils.IntegerArray;
 
 type
-  TUnitMethod = class
+  TUnitMethodMetrics = class
   private
     fKind: string;
     fFullName: string;
@@ -15,8 +15,8 @@ type
     fComplexity: Integer;
   public
     constructor Create(const aKind: string; const aFullName: string);
-    function SetLenght(aLength: Integer): TUnitMethod;
-    function SetComplexity(aMaxIndentation: Integer): TUnitMethod;
+    function SetLenght(aLength: Integer): TUnitMethodMetrics;
+    function SetComplexity(aMaxIndentation: Integer): TUnitMethodMetrics;
     function ToString(): string; override;
     property Kind: string read fKind;
     property FullName: string read fFullName;
@@ -26,25 +26,27 @@ type
 
 implementation
 
-constructor TUnitMethod.Create(const aKind: string; const aFullName: string);
+constructor TUnitMethodMetrics.Create(const aKind: string;
+  const aFullName: string);
 begin
   self.fKind := aKind;
   self.fFullName := aFullName;
 end;
 
-function TUnitMethod.SetLenght(aLength: Integer): TUnitMethod;
+function TUnitMethodMetrics.SetLenght(aLength: Integer): TUnitMethodMetrics;
 begin
   self.fLenght := aLength;
   Result := self;
 end;
 
-function TUnitMethod.SetComplexity(aMaxIndentation: Integer): TUnitMethod;
+function TUnitMethodMetrics.SetComplexity(aMaxIndentation: Integer)
+  : TUnitMethodMetrics;
 begin
   self.fComplexity := aMaxIndentation;
   Result := self;
 end;
 
-function TUnitMethod.ToString: string;
+function TUnitMethodMetrics.ToString: string;
 begin
   Result := Format('%s %s  =  [Lenght: %d] [Level: %d]',
     [Kind, FullName, Lenght, fComplexity])

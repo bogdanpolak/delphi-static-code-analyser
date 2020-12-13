@@ -10,23 +10,23 @@ type
   TVisibility = (visPrivate, visProtected, visPublic);
 
 type
-  TClassMethod = class
+  TClassMethodMetrics = class
   private
     fVisibility: TVisibility;
     fName: string;
-    fUnitMethod: TUnitMethod;
+    fUnitMethod: TUnitMethodMetrics;
   public
     constructor Create(aVisibility: TVisibility; const aName: string;
-      const aUnitMethod: TUnitMethod);
+      const aUnitMethod: TUnitMethodMetrics);
     property Visibility: TVisibility read fVisibility;
     property Name: string read fName;
-    property UnitMethod: TUnitMethod read fUnitMethod;
+    property UnitMethod: TUnitMethodMetrics read fUnitMethod;
   end;
 
 implementation
 
-constructor TClassMethod.Create(aVisibility: TVisibility; const aName: string;
-  const aUnitMethod: TUnitMethod);
+constructor TClassMethodMetrics.Create(aVisibility: TVisibility;
+  const aName: string; const aUnitMethod: TUnitMethodMetrics);
 begin
   fVisibility := aVisibility;
   fName := aName;

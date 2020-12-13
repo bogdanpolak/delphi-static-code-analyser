@@ -11,7 +11,7 @@ type
   TComplexityGreaterEqual = class(TMethodFilter)
   public
     constructor Create( aMinimalComlexityLevel: Integer);
-    function IsMatching(const aMethodMetrics: TUnitMethod): boolean;
+    function IsMatching(const aMethodMetrics: TUnitMethodMetrics): boolean;
       override;
   private
     fMinimalComlexityLevel: Integer;
@@ -20,7 +20,7 @@ type
   TLengthGreaterEqual = class(TMethodFilter)
   public
     constructor Create( aMinimalMethodLength: Integer);
-    function IsMatching(const aMethodMetrics: TUnitMethod): boolean;
+    function IsMatching(const aMethodMetrics: TUnitMethodMetrics): boolean;
       override;
   private
     fMinimalMethodLength: Integer;
@@ -36,7 +36,7 @@ begin
 end;
 
 function TComplexityGreaterEqual.IsMatching(
-  const aMethodMetrics: TUnitMethod): boolean;
+  const aMethodMetrics: TUnitMethodMetrics): boolean;
 begin
   Result := aMethodMetrics.Complexity >= fMinimalComlexityLevel;
 end;
@@ -49,7 +49,7 @@ begin
 end;
 
 function TLengthGreaterEqual.IsMatching(
-  const aMethodMetrics: TUnitMethod): boolean;
+  const aMethodMetrics: TUnitMethodMetrics): boolean;
 begin
   Result := aMethodMetrics.Lenght >= fMinimalMethodLength;
 end;
