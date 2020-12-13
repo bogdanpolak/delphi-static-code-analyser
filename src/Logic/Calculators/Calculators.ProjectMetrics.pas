@@ -28,7 +28,7 @@ type
     procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
     function CalculateUnit(const aFileName: string; slUnitCode: TStringList;
       const aRootNode: TSyntaxNode): TUnitMetrics;
-    function CalculateMethod(slUnitCode: TStringList;
+    function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
   public
     class function Calculate(const aFileName: string;
@@ -113,8 +113,9 @@ begin
     Result := 1;
 end;
 
-function TProjectCalculator.CalculateMethod(slUnitCode: TStringList;
-  aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
+function TProjectCalculator.CalculateMethod(const aNameOfUnit: string;
+  slUnitCode: TStringList; aMethodNode: TCompoundSyntaxNode)
+  : TUnitMethodMetrics;
 var
   methodKind: string;
   methodName: string;
@@ -125,7 +126,7 @@ begin
   methodName := aMethodNode.GetAttribute(anName);
   methodLength := CalculateMethodLength(aMethodNode);
   methodComplexity := CalculateMethodMaxIndent(slUnitCode, aMethodNode);
-  Result := TUnitMethodMetrics.Create(methodKind, methodName)
+  Result := TUnitMethodMetrics.Create(aNameOfUnit, methodKind, methodName)
     .SetLenght(methodLength).SetComplexity(methodComplexity);
 end;
 
@@ -144,7 +145,8 @@ begin
   for child in implementationNode.ChildNodes do
     if child.Typ = ntMethod then
     begin
-      methodMetics := CalculateMethod(slUnitCode, child as TCompoundSyntaxNode);
+      methodMetics := CalculateMethod(aFileName, slUnitCode,
+        child as TCompoundSyntaxNode);
       Result.AddMethod(methodMetics);
     end;
 end;

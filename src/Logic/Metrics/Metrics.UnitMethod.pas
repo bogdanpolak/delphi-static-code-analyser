@@ -13,11 +13,14 @@ type
     fFullName: string;
     fLenght: Integer;
     fComplexity: Integer;
+    fNameOfUnit: string;
   public
-    constructor Create(const aKind: string; const aFullName: string);
+    constructor Create(const aNameOfUnit: string; const aKind: string;
+      const aFullName: string);
     function SetLenght(aLength: Integer): TUnitMethodMetrics;
     function SetComplexity(aMaxIndentation: Integer): TUnitMethodMetrics;
     function ToString(): string; override;
+    property NameOfUnit: string read fNameOfUnit;
     property Kind: string read fKind;
     property FullName: string read fFullName;
     property Lenght: Integer read fLenght;
@@ -26,9 +29,10 @@ type
 
 implementation
 
-constructor TUnitMethodMetrics.Create(const aKind: string;
-  const aFullName: string);
+constructor TUnitMethodMetrics.Create(const aNameOfUnit: string;
+  const aKind: string; const aFullName: string);
 begin
+  self.fNameOfUnit := aNameOfUnit;
   self.fKind := aKind;
   self.fFullName := aFullName;
 end;
