@@ -1,10 +1,10 @@
-unit Model.ClassMethod;
+unit Metrics.ClassMethod;
 
 interface
 
 uses
   {--}
-  Model.MethodMetrics;
+  Metrics.UnitMethod;
 
 type
   TVisibility = (visPrivate, visProtected, visPublic);
@@ -14,19 +14,19 @@ type
   private
     fVisibility: TVisibility;
     fName: string;
-    fUnitMethod: TMethodMetrics;
+    fUnitMethod: TUnitMethod;
   public
     constructor Create(aVisibility: TVisibility; const aName: string;
-      const aUnitMethod: TMethodMetrics);
+      const aUnitMethod: TUnitMethod);
     property Visibility: TVisibility read fVisibility;
     property Name: string read fName;
-    property UnitMethod: TMethodMetrics read fUnitMethod;
+    property UnitMethod: TUnitMethod read fUnitMethod;
   end;
 
 implementation
 
 constructor TClassMethod.Create(aVisibility: TVisibility; const aName: string;
-  const aUnitMethod: TMethodMetrics);
+  const aUnitMethod: TUnitMethod);
 begin
   fVisibility := aVisibility;
   fName := aName;

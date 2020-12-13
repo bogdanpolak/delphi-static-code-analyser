@@ -1,4 +1,4 @@
-unit Model.MetricsCalculator;
+unit Calculators.UnitMetrics;
 
 interface
 
@@ -14,8 +14,8 @@ uses
   DelphiAST.SimpleParserEx,
   IncludeHandler,
   {}
-  Model.MethodMetrics,
-  Model.UnitMetrics;
+  Metrics.UnitMethod,
+  Metrics.UnitM;
 
 type
   TUnitCalculator = class
@@ -28,7 +28,7 @@ type
     function CalculateUnit(const aFileName: string; slUnitCode: TStringList;
       const aRootNode: TSyntaxNode): TUnitMetrics;
     function CalculateMethod(slUnitCode: TStringList;
-      aMethodNode: TCompoundSyntaxNode): TMethodMetrics;
+      aMethodNode: TCompoundSyntaxNode): TUnitMethod;
   public
     class function Calculate(const aFileName: string): TUnitMetrics; static;
   end;
@@ -112,7 +112,7 @@ begin
 end;
 
 function TUnitCalculator.CalculateMethod(slUnitCode: TStringList;
-  aMethodNode: TCompoundSyntaxNode): TMethodMetrics;
+  aMethodNode: TCompoundSyntaxNode): TUnitMethod;
 var
   methodKind: string;
   methodName: string;
@@ -123,7 +123,7 @@ begin
   methodName := aMethodNode.GetAttribute(anName);
   methodLength := CalculateMethodLength(aMethodNode);
   methodComplexity := CalculateMethodMaxIndent(slUnitCode, aMethodNode);
-  Result := TMethodMetrics.Create(methodKind, methodName)
+  Result := TUnitMethod.Create(methodKind, methodName)
     .SetLenght(methodLength).SetComplexity(methodComplexity);
 end;
 
@@ -133,7 +133,7 @@ function TUnitCalculator.CalculateUnit(const aFileName: string;
   slUnitCode: TStringList; const aRootNode: TSyntaxNode): TUnitMetrics;
 var
   implementationNode: TSyntaxNode;
-  methodMetics: TMethodMetrics;
+  methodMetics: TUnitMethod;
   child: TSyntaxNode;
 begin
   // ---- interfaceNode := rootNode.FindNode(ntInterface);

@@ -1,17 +1,17 @@
-unit Model.Filters.Concrete;
+unit Filters.Concrete;
 
 interface
 
 uses
-  {DelphiCodeAnalyser}
-  Model.MethodMetrics,
-  Model.Filters.MethodFiltes;
+  {--}
+  Metrics.UnitMethod,
+  Filters.Method;
 
 type
   TComplexityGreaterEqual = class(TMethodFilter)
   public
     constructor Create( aMinimalComlexityLevel: Integer);
-    function IsMatching(const aMethodMetrics: TMethodMetrics): boolean;
+    function IsMatching(const aMethodMetrics: TUnitMethod): boolean;
       override;
   private
     fMinimalComlexityLevel: Integer;
@@ -20,7 +20,7 @@ type
   TLengthGreaterEqual = class(TMethodFilter)
   public
     constructor Create( aMinimalMethodLength: Integer);
-    function IsMatching(const aMethodMetrics: TMethodMetrics): boolean;
+    function IsMatching(const aMethodMetrics: TUnitMethod): boolean;
       override;
   private
     fMinimalMethodLength: Integer;
@@ -36,7 +36,7 @@ begin
 end;
 
 function TComplexityGreaterEqual.IsMatching(
-  const aMethodMetrics: TMethodMetrics): boolean;
+  const aMethodMetrics: TUnitMethod): boolean;
 begin
   Result := aMethodMetrics.Complexity >= fMinimalComlexityLevel;
 end;
@@ -49,7 +49,7 @@ begin
 end;
 
 function TLengthGreaterEqual.IsMatching(
-  const aMethodMetrics: TMethodMetrics): boolean;
+  const aMethodMetrics: TUnitMethod): boolean;
 begin
   Result := aMethodMetrics.Lenght >= fMinimalMethodLength;
 end;

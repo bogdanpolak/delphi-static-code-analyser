@@ -11,7 +11,7 @@ uses
   {}
   Configuration.AppConfig,
   Command.AnalyseUnit,
-  Model.Filters.MethodFiltes;
+  Filters.Method;
 
 type
   TApplicationMode = (amComplexityAnalysis, amFileAnalysis, amGenerateXml);
@@ -37,7 +37,7 @@ implementation
 
 uses
   Command.GenerateXml,
-  Model.Filters.Concrete;
+  Filters.Concrete;
 
 constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin

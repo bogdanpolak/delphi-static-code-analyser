@@ -11,9 +11,9 @@ uses
   DelphiAST.SimpleParserEx,
   IncludeHandler,
   {}
-  Model.UnitMetrics,
-  Model.MethodMetrics,
-  Model.Filters.MethodFiltes;
+  Metrics.UnitM,
+  Metrics.UnitMethod,
+  Filters.Method;
 
 type
   TAnalyseUnitCommand = class
@@ -21,9 +21,9 @@ type
     fUnitReport: TStringList;
 
     procedure GenerateCsv(const aUnitName: string;
-      const methods: TArray<TMethodMetrics>);
+      const methods: TArray<TUnitMethod>);
     procedure GeneratePlainText(const aUnitName: string;
-      const methods: TArray<TMethodMetrics>);
+      const methods: TArray<TUnitMethod>);
   public
     constructor Create;
     destructor Destory;
@@ -34,7 +34,7 @@ type
 implementation
 
 uses
-  Model.MetricsCalculator;
+  Calculators.UnitMetrics;
 
 constructor TAnalyseUnitCommand.Create;
 begin
@@ -52,9 +52,9 @@ begin
 end;
 
 procedure TAnalyseUnitCommand.GeneratePlainText(const aUnitName: string;
-  const methods: TArray<TMethodMetrics>);
+  const methods: TArray<TUnitMethod>);
 var
-  method: TMethodMetrics;
+  method: TUnitMethod;
   isFirst: Boolean;
 begin
   isFirst := True;
@@ -72,9 +72,9 @@ var
   CurrentOrderNumber: Integer = 1;
 
 procedure TAnalyseUnitCommand.GenerateCsv(const aUnitName: string;
-  const methods: TArray<TMethodMetrics>);
+  const methods: TArray<TUnitMethod>);
 var
-  method: TMethodMetrics;
+  method: TUnitMethod;
 begin
   for method in methods do
   begin
@@ -89,7 +89,7 @@ procedure TAnalyseUnitCommand.Execute(const aFileName: string;
   aMethodFilters: TMethodFilters);
 var
   unitMetrics1: TUnitMetrics;
-  methods: TArray<TMethodMetrics>;
+  methods: TArray<TUnitMethod>;
 begin
   fUnitReport.Clear;
   try

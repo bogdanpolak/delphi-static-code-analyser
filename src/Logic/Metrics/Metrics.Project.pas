@@ -1,14 +1,14 @@
-unit Model.ProjectMetrics;
+unit Metrics.Project;
 
 interface
 
 uses
   System.Generics.Collections,
   {--}
-  Model.ClassMetrics;
+  Metrics.ClassM;
 
 type
-  TProjectMetrics = class
+  TProject = class
   private
     fClasses: TObjectList<TClassMetrics>;
   public
@@ -21,28 +21,28 @@ type
 
 implementation
 
-constructor TProjectMetrics.Create;
+constructor TProject.Create;
 begin
   fClasses := TObjectList<TClassMetrics>.Create();
 end;
 
-destructor TProjectMetrics.Destroy;
+destructor TProject.Destroy;
 begin
   fClasses.Free;
   inherited;
 end;
 
-procedure TProjectMetrics.AddClass(const aClassMetrics: TClassMetrics);
+procedure TProject.AddClass(const aClassMetrics: TClassMetrics);
 begin
   fClasses.Add(aClassMetrics);
 end;
 
-function TProjectMetrics.ClassCount: Integer;
+function TProject.ClassCount: Integer;
 begin
   Result:=fClasses.Count;
 end;
 
-function TProjectMetrics.GetClass(aIdx: Integer): TClassMetrics;
+function TProject.GetClass(aIdx: Integer): TClassMetrics;
 begin
   Result:=fClasses.Items[aIdx];
 end;

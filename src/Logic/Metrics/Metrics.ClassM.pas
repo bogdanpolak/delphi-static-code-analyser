@@ -1,4 +1,4 @@
-unit Model.ClassMetrics;
+unit Metrics.ClassM;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   System.SysUtils,
   System.Generics.Collections,
   {--}
-  Model.ClassMethod;
+  Metrics.ClassMethod;
 
 type
   TClassMetrics = class
