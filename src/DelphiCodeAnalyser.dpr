@@ -31,7 +31,8 @@ uses
   Model.Filters.MethodFiltes in 'Model\Filters\Model.Filters.MethodFiltes.pas',
   Model.Filters.Concrete in 'Model\Filters\Model.Filters.Concrete.pas',
   Model.ClassMetrics in 'Model\Model.ClassMetrics.pas',
-  Model.ProjectMetrics in 'Model\Model.ProjectMetrics.pas';
+  Model.ProjectMetrics in 'Model\Model.ProjectMetrics.pas',
+  Model.ClassMethod in 'Model\Model.ClassMethod.pas';
 
 var
   appConfiguration: IAppConfiguration;
