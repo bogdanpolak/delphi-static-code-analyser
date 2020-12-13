@@ -1,4 +1,4 @@
-unit Calculators.UnitMetrics;
+unit Calculators.ProjectMetrics;
 
 interface
 
@@ -15,7 +15,8 @@ uses
   IncludeHandler,
   {}
   Metrics.UnitMethod,
-  Metrics.UnitM;
+  Metrics.UnitM,
+  Metrics.Project;
 
 type
   TUnitCalculator = class
@@ -30,7 +31,8 @@ type
     function CalculateMethod(slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
   public
-    class function Calculate(const aFileName: string): TUnitMetrics; static;
+    class function Calculate(const aFileName: string;
+      const aProjectMetrics: TProjectMetrics): TUnitMetrics; static;
   end;
 
 implementation
@@ -147,7 +149,8 @@ begin
     end;
 end;
 
-class function TUnitCalculator.Calculate(const aFileName: string): TUnitMetrics;
+class function TUnitCalculator.Calculate(const aFileName: string;
+  const aProjectMetrics: TProjectMetrics): TUnitMetrics;
 var
   syntaxRootNode: TSyntaxNode;
   slUnitCode: TStringList;
@@ -168,6 +171,7 @@ begin
       try
         Result := calculator.CalculateUnit(aFileName, slUnitCode,
           syntaxRootNode);
+        aProjectMetrics.AddUnit(Result);
       finally
         calculator.Free;
       end;

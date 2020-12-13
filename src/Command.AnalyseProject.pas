@@ -11,6 +11,7 @@ uses
   DelphiAST.SimpleParserEx,
   IncludeHandler,
   {}
+  Metrics.Project,
   Metrics.UnitM,
   Metrics.UnitMethod,
   Filters.Method;
@@ -19,7 +20,7 @@ type
   TAnalyseProjectCommand = class
   private
     fReport: TStringList;
-
+    fProjectMetrics: TProjectMetrics;
     procedure GenerateCsv(const aUnitName: string;
       const methods: TArray<TUnitMethodMetrics>);
     procedure GeneratePlainText(const aUnitName: string;
@@ -35,15 +36,17 @@ type
 implementation
 
 uses
-  Calculators.UnitMetrics;
+  Calculators.ProjectMetrics;
 
 constructor TAnalyseProjectCommand.Create;
 begin
   fReport := TStringList.Create;
+  fProjectMetrics := TProjectMetrics.Create;
 end;
 
 destructor TAnalyseProjectCommand.Destory;
 begin
+  fProjectMetrics.Free;
   fReport.Free;
 end;
 
@@ -89,27 +92,18 @@ procedure TAnalyseProjectCommand.Execute(const aFiles: TArray<string>;
   aMethodFilters: TMethodFilters = nil);
 var
   unitFileName: string;
-  UnitMetrics: TUnitMetrics;
   methods: TArray<TUnitMethodMetrics>;
+  metrics: TUnitMetrics;
 begin
   fReport.Clear;
   fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
     'Method', 'Length', 'Complexity']));
   for unitFileName in aFiles do
   begin
-    try
-      UnitMetrics := TUnitCalculator.Calculate(unitFileName);
-    except
-      on E: ESyntaxTreeException do
-      begin
-        writeln(Format('[%d, %d] %s', [E.Line, E.Col, E.Message]));
-        raise;
-      end;
-    end;
-    methods := UnitMetrics.FilterMethods(aMethodFilters);
-    GeneratePlainText(UnitMetrics.Name, methods);
-    GenerateCsv(UnitMetrics.Name, methods);
-    UnitMetrics.Free;
+    metrics := TUnitCalculator.Calculate(unitFileName,fProjectMetrics);
+    methods := metrics.FilterMethods(aMethodFilters);
+    GeneratePlainText(metrics.Name, methods);
+    GenerateCsv(metrics.Name, methods);
   end;
 end;
 

@@ -27,7 +27,7 @@ uses
   Metrics.ClassMethod in 'Logic\Metrics\Metrics.ClassMethod.pas',
   Filters.Method in 'Logic\Filters\Filters.Method.pas',
   Filters.Concrete in 'Logic\Filters\Filters.Concrete.pas',
-  Calculators.UnitMetrics in 'Logic\Calculators\Calculators.UnitMetrics.pas',
+  Calculators.ProjectMetrics in 'Logic\Calculators\Calculators.ProjectMetrics.pas',
   Main in 'Main.pas',
   Command.AnalyseProject in 'Command.AnalyseProject.pas',
   Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
