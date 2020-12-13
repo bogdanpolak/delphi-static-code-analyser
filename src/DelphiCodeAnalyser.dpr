@@ -6,7 +6,6 @@ program DelphiCodeAnalyser;
 
 uses
   System.SysUtils,
-  Main in 'Main.pas',
   DelphiAST.Classes in '..\components\DelphiAST\DelphiAST.Classes.pas',
   DelphiAST.Consts in '..\components\DelphiAST\DelphiAST.Consts.pas',
   DelphiAST in '..\components\DelphiAST\DelphiAST.pas',
@@ -20,16 +19,22 @@ uses
   SimpleParser in '..\components\DelphiAST\SimpleParser\SimpleParser.pas',
   SimpleParser.Types in '..\components\DelphiAST\SimpleParser\SimpleParser.Types.pas',
   IncludeHandler in 'IncludeHandler.pas',
-  Model.MethodMetrics in 'Model\Model.MethodMetrics.pas',
-  Model.UnitMetrics in 'Model\Model.UnitMetrics.pas',
-  Model.MetricsCalculator in 'Model\Model.MetricsCalculator.pas',
-  Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
+  {}
   Utils.IntegerArray in 'Utils\Utils.IntegerArray.pas',
+  Metrics.UnitMethod in 'Logic\Metrics\Metrics.UnitMethod.pas',
+  Metrics.UnitM in 'Logic\Metrics\Metrics.UnitM.pas',
+  Metrics.ClassM in 'Logic\Metrics\Metrics.ClassM.pas',
+  Metrics.Project in 'Logic\Metrics\Metrics.Project.pas',
+  Metrics.ClassMethod in 'Logic\Metrics\Metrics.ClassMethod.pas',
+  Filters.Method in 'Logic\Filters\Filters.Method.pas',
+  Filters.Concrete in 'Logic\Filters\Filters.Concrete.pas',
+  Calculators.UnitMetrics in 'Logic\Calculators\Calculators.UnitMetrics.pas',
+  {}
+  Main in 'Main.pas',
+  Command.AnalyseUnit in 'Command.AnalyseUnit.pas',
   Command.GenerateXml in 'Command.GenerateXml.pas',
   Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
-  Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas',
-  Model.Filters.MethodFiltes in 'Model\Filters\Model.Filters.MethodFiltes.pas',
-  Model.Filters.Concrete in 'Model\Filters\Model.Filters.Concrete.pas';
+  Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas';
 
 var
   appConfiguration: IAppConfiguration;
