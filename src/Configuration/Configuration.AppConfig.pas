@@ -8,6 +8,7 @@ type
     procedure Initialize;
     function GetSourceFolders: TArray<string>;
     function GetOutputFile: string;
+    function HasFilters: boolean;
     function GetFilterComplexityLevel: integer;
     function GetFilterMethodLength: integer;
   end;

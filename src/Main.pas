@@ -100,9 +100,12 @@ begin
       begin
         complexityLevel := fAppConfiguration.GetFilterComplexityLevel();
         methodLength := fAppConfiguration.GetFilterMethodLength();
-        fMethodFilters.AddRange([
-          { } TComplexityGreaterEqual.Create(complexityLevel),
-          { } TLengthGreaterEqual.Create(methodLength)]);
+        if fAppConfiguration.HasFilters() then
+        begin
+          fMethodFilters.AddRange([
+            { } TComplexityGreaterEqual.Create(complexityLevel),
+            { } TLengthGreaterEqual.Create(methodLength)]);
+        end;
         fReport.Clear;
         fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
           'Method', 'Length', 'Complexity']));
