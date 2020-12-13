@@ -45,7 +45,7 @@ var
   list: TList<TUnitMethodMetrics>;
   method: TUnitMethodMetrics;
 begin
-  if aMethodFilters.Count = 0 then
+  if (aMethodFilters=nil) or (aMethodFilters.Count = 0) then
     Exit(fMethods.ToArray);
   Result := nil;
   list := TList<TUnitMethodMetrics>.Create;
