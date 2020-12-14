@@ -1,4 +1,4 @@
-unit Calculators.UnitMetrics;
+unit Calculators.ProjectMetrics;
 
 interface
 
@@ -15,10 +15,11 @@ uses
   IncludeHandler,
   {}
   Metrics.UnitMethod,
-  Metrics.UnitM;
+  Metrics.UnitM,
+  Metrics.Project;
 
 type
-  TUnitCalculator = class
+  TProjectCalculator = class
   private
     function CalculateMethodLength(const aMethodNode
       : TCompoundSyntaxNode): Integer;
@@ -27,10 +28,11 @@ type
     procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
     function CalculateUnit(const aFileName: string; slUnitCode: TStringList;
       const aRootNode: TSyntaxNode): TUnitMetrics;
-    function CalculateMethod(slUnitCode: TStringList;
+    function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
   public
-    class function Calculate(const aFileName: string): TUnitMetrics; static;
+    class procedure Calculate(const aFileName: string;
+      const aProjectMetrics: TProjectMetrics); static;
   end;
 
 implementation
@@ -45,7 +47,7 @@ uses
 var
   fLineIndetation: TDictionary<Integer, Integer>;
 
-procedure TUnitCalculator.MinIndetationNodeWalker(const aNode: TSyntaxNode);
+procedure TProjectCalculator.MinIndetationNodeWalker(const aNode: TSyntaxNode);
 var
   child: TSyntaxNode;
   indentation: Integer;
@@ -64,7 +66,7 @@ begin
   end;
 end;
 
-function TUnitCalculator.CalculateMethodMaxIndent(slCode: TStringList;
+function TProjectCalculator.CalculateMethodMaxIndent(slCode: TStringList;
   const aMethodNode: TCompoundSyntaxNode): Integer;
 var
   statements: TCompoundSyntaxNode;
@@ -99,7 +101,7 @@ begin
   end;
 end;
 
-function TUnitCalculator.CalculateMethodLength(const aMethodNode
+function TProjectCalculator.CalculateMethodLength(const aMethodNode
   : TCompoundSyntaxNode): Integer;
 var
   statements: TCompoundSyntaxNode;
@@ -111,8 +113,9 @@ begin
     Result := 1;
 end;
 
-function TUnitCalculator.CalculateMethod(slUnitCode: TStringList;
-  aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
+function TProjectCalculator.CalculateMethod(const aNameOfUnit: string;
+  slUnitCode: TStringList; aMethodNode: TCompoundSyntaxNode)
+  : TUnitMethodMetrics;
 var
   methodKind: string;
   methodName: string;
@@ -123,13 +126,13 @@ begin
   methodName := aMethodNode.GetAttribute(anName);
   methodLength := CalculateMethodLength(aMethodNode);
   methodComplexity := CalculateMethodMaxIndent(slUnitCode, aMethodNode);
-  Result := TUnitMethodMetrics.Create(methodKind, methodName)
+  Result := TUnitMethodMetrics.Create(aNameOfUnit, methodKind, methodName)
     .SetLenght(methodLength).SetComplexity(methodComplexity);
 end;
 
 // ---------------------------------------------------------------------
 
-function TUnitCalculator.CalculateUnit(const aFileName: string;
+function TProjectCalculator.CalculateUnit(const aFileName: string;
   slUnitCode: TStringList; const aRootNode: TSyntaxNode): TUnitMetrics;
 var
   implementationNode: TSyntaxNode;
@@ -142,16 +145,19 @@ begin
   for child in implementationNode.ChildNodes do
     if child.Typ = ntMethod then
     begin
-      methodMetics := CalculateMethod(slUnitCode, child as TCompoundSyntaxNode);
+      methodMetics := CalculateMethod(aFileName, slUnitCode,
+        child as TCompoundSyntaxNode);
       Result.AddMethod(methodMetics);
     end;
 end;
 
-class function TUnitCalculator.Calculate(const aFileName: string): TUnitMetrics;
+class procedure TProjectCalculator.Calculate(const aFileName: string;
+  const aProjectMetrics: TProjectMetrics);
 var
   syntaxRootNode: TSyntaxNode;
   slUnitCode: TStringList;
-  calculator: TUnitCalculator;
+  calculator: TProjectCalculator;
+  UnitM: TUnitMetrics;
 begin
   {
     if aIncludeFolder <> '' then
@@ -164,10 +170,11 @@ begin
     slUnitCode := TStringList.Create;
     try
       slUnitCode.LoadFromFile(aFileName);
-      calculator := TUnitCalculator.Create();
+      calculator := TProjectCalculator.Create();
       try
-        Result := calculator.CalculateUnit(aFileName, slUnitCode,
+        UnitM := calculator.CalculateUnit(aFileName, slUnitCode,
           syntaxRootNode);
+        aProjectMetrics.AddUnit(UnitM);
       finally
         calculator.Free;
       end;

@@ -9,28 +9,32 @@ uses
 type
   TUnitMethodMetrics = class
   private
+    fFullUnitName: string;
     fKind: string;
-    fFullName: string;
+    fName: string;
     fLenght: Integer;
     fComplexity: Integer;
   public
-    constructor Create(const aKind: string; const aFullName: string);
+    constructor Create(const aFullUnitName: string; const aKind: string;
+      const aName: string);
     function SetLenght(aLength: Integer): TUnitMethodMetrics;
     function SetComplexity(aMaxIndentation: Integer): TUnitMethodMetrics;
     function ToString(): string; override;
+    property FullUnitName: string read fFullUnitName;
     property Kind: string read fKind;
-    property FullName: string read fFullName;
+    property Name: string read fName;
     property Lenght: Integer read fLenght;
     property Complexity: Integer read fComplexity;
   end;
 
 implementation
 
-constructor TUnitMethodMetrics.Create(const aKind: string;
-  const aFullName: string);
+constructor TUnitMethodMetrics.Create(const aFullUnitName: string;
+  const aKind: string; const aName: string);
 begin
+  self.fFullUnitName := aFullUnitName;
   self.fKind := aKind;
-  self.fFullName := aFullName;
+  self.fName := aName;
 end;
 
 function TUnitMethodMetrics.SetLenght(aLength: Integer): TUnitMethodMetrics;
@@ -49,7 +53,7 @@ end;
 function TUnitMethodMetrics.ToString: string;
 begin
   Result := Format('%s %s  =  [Lenght: %d] [Level: %d]',
-    [Kind, FullName, Lenght, fComplexity])
+    [Kind, Name, Lenght, fComplexity])
 end;
 
 end.

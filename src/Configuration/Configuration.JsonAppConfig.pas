@@ -15,21 +15,23 @@ type
     DefaultConfigFileName = 'appconfig.json';
   private
     fConfigFileName: string;
-    fLoaded: boolean;
+    fLoaded: Boolean;
     fSourceFolders: TArray<string>;
     fOutputFile: string;
+    fHasFilters: Boolean;
     fComplexityLevel: Integer;
     fMethodLength: Integer;
-    function GetConfigValue(config: TJSONObject;
-      const aKey: string): TJSONValue;
+    function GetConfigValue(config: TJSONObject; const aKey: string)
+      : TJSONValue;
     procedure ReadConfiguration;
   public
     constructor Create;
     procedure Initialize;
     function GetSourceFolders: TArray<string>;
     function GetOutputFile: string;
-    function GetFilterComplexityLevel: integer;
-    function GetFilterMethodLength: integer;
+    function HasFilters: boolean;
+    function GetFilterComplexityLevel: Integer;
+    function GetFilterMethodLength: Integer;
   end;
 
 function BuildAppConfiguration(): IAppConfiguration;
@@ -47,8 +49,8 @@ begin
   fLoaded := False;
 end;
 
-function TJsonAppConfiguration.GetConfigValue(config: TJSONObject; const aKey: string)
-  : TJSONValue;
+function TJsonAppConfiguration.GetConfigValue(config: TJSONObject;
+  const aKey: string): TJSONValue;
 var
   value: TJSONValue;
 begin
@@ -71,13 +73,19 @@ begin
   Result := fSourceFolders;
 end;
 
-function TJsonAppConfiguration.GetFilterComplexityLevel: integer;
+function TJsonAppConfiguration.HasFilters: boolean;
+begin
+  Initialize;
+  Result := fHasFilters;
+end;
+
+function TJsonAppConfiguration.GetFilterComplexityLevel: Integer;
 begin
   Initialize;
   Result := fComplexityLevel;
 end;
 
-function TJsonAppConfiguration.GetFilterMethodLength: integer;
+function TJsonAppConfiguration.GetFilterMethodLength: Integer;
 begin
   Initialize;
   Result := fMethodLength;
@@ -132,27 +140,20 @@ begin
   end;
   // --
   key := 'OutputFile';
-  fOutputFile := GetConfigValue(jsAppConfig, key).Value;
-  if fOutputFile='' then
+  fOutputFile := GetConfigValue(jsAppConfig, key).value;
+  if fOutputFile = '' then
     raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Expected output file path in "%s".',
-      [key]));
+      (Format('[AppConfig Error] Expected output file path in "%s".', [key]));
   // --
   key := 'Filters';
-  jsonValue := GetConfigValue(jsAppConfig, key);
-  if fOutputFile='' then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Expected output file path in "%s".',
-      [key]));
-  if not(jsonValue is TJSONObject) then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Key %s has invalid value, expected object.',
-      [key]));
-  jsonFilters := jsonValue as TJSONObject;
+  fHasFilters := jsAppConfig.TryGetValue<TJSONObject>(key, jsonFilters);
   fComplexityLevel := 0;
   fMethodLength := 0;
-  jsonFilters.TryGetValue<Integer>('ComplexityLevel',fComplexityLevel);
-  jsonFilters.TryGetValue<Integer>('MethodLength',fMethodLength);
+  if fHasFilters then
+  begin
+    jsonFilters.TryGetValue<Integer>('ComplexityLevel', fComplexityLevel);
+    jsonFilters.TryGetValue<Integer>('MethodLength', fMethodLength);
+  end;
 end;
 
 end.

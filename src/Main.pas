@@ -10,7 +10,7 @@ uses
   System.Generics.Collections,
   {}
   Configuration.AppConfig,
-  Command.AnalyseUnit,
+  Command.AnalyseProject,
   Filters.Method;
 
 type
@@ -21,11 +21,11 @@ type
     ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
-    cmdAnalyseUnit: TAnalyseUnitCommand;
-    fReport: TStringList;
+    cmdAnalyseProject: TAnalyseProjectCommand;
     fMethodFilters: TMethodFilters;
     function GetUnits: TArray<string>;
     procedure WriteApplicationTitle;
+    procedure DefineFiltersUsingConfiguration;
     procedure ApplicationRun;
   public
     constructor Create(const aAppConfiguration: IAppConfiguration);
@@ -43,16 +43,14 @@ constructor TMain.Create(const aAppConfiguration: IAppConfiguration);
 begin
   Assert(aAppConfiguration <> nil);
   fAppConfiguration := aAppConfiguration;
-  cmdAnalyseUnit := TAnalyseUnitCommand.Create;
-  fReport := TStringList.Create;
+  cmdAnalyseProject := TAnalyseProjectCommand.Create;
   fMethodFilters := TMethodFilters.Create;
 end;
 
 destructor TMain.Destory;
 begin
   fMethodFilters.Free;
-  fReport.Free;
-  cmdAnalyseUnit.Free;
+  cmdAnalyseProject.Free;
 end;
 
 procedure TMain.WriteApplicationTitle();
@@ -84,42 +82,45 @@ begin
   end;
 end;
 
-procedure TMain.ApplicationRun();
+procedure TMain.DefineFiltersUsingConfiguration();
 var
-  files: TArray<string>;
-  fname: string;
-  unitReport: TStrings;
   complexityLevel: Integer;
   methodLength: Integer;
 begin
-  fAppConfiguration.Initialize;
   fMethodFilters.Clear;
-  WriteApplicationTitle();
+  complexityLevel := fAppConfiguration.GetFilterComplexityLevel();
+  methodLength := fAppConfiguration.GetFilterMethodLength();
+  if fAppConfiguration.HasFilters() then
+  begin
+    fMethodFilters.AddRange([
+      { } TComplexityGreaterEqual.Create(complexityLevel),
+      { } TLengthGreaterEqual.Create(methodLength)]);
+  end;
+end;
+
+procedure TMain.ApplicationRun();
+var
+  files: TArray<string>;
+begin
+  fAppConfiguration.Initialize;
   case ApplicationMode of
     amComplexityAnalysis:
       begin
-        complexityLevel := fAppConfiguration.GetFilterComplexityLevel();
-        methodLength := fAppConfiguration.GetFilterMethodLength();
-        fMethodFilters.AddRange([
-          { } TComplexityGreaterEqual.Create(complexityLevel),
-          { } TLengthGreaterEqual.Create(methodLength)]);
-        fReport.Clear;
-        fReport.Add(Format('"%s","%s","%s","%s","%s"', ['No', 'Unit location',
-          'Method', 'Length', 'Complexity']));
+        WriteApplicationTitle();
         files := GetUnits();
-        for fname in files do
-        begin
-          cmdAnalyseUnit.Execute(fname, fMethodFilters);
-          unitReport := cmdAnalyseUnit.GetUnitReport();
-          fReport.AddStrings(unitReport);
-        end;
-        fname := fAppConfiguration.GetOutputFile();
-        fReport.SaveToFile(fname);
+        DefineFiltersUsingConfiguration();
+        cmdAnalyseProject.Execute(files, fMethodFilters);
+        cmdAnalyseProject.SaveReportToFile(fAppConfiguration.GetOutputFile());
       end;
     amFileAnalysis:
-        cmdAnalyseUnit.Execute('..\test\data\test04.pas', fMethodFilters);
+      begin
+        cmdAnalyseProject.Execute(['..\test\data\test04.pas']);
+      end;
     amGenerateXml:
-      TGenerateXmlCommand.Generate('..\test\data\testunit.pas');
+      begin
+        fMethodFilters.Clear;
+        TGenerateXmlCommand.Generate('..\test\data\testunit.pas');
+      end;
   end;
 end;
 
@@ -138,6 +139,7 @@ begin
     on E: Exception do
       writeln(E.ClassName, ': ', E.Message);
   end;
+  Write('... [press enter to close]');
   readln;
 end;
 

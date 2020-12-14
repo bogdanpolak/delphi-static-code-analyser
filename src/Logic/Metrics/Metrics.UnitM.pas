@@ -6,8 +6,7 @@ uses
   System.Generics.Collections,
   {--}
   Utils.IntegerArray,
-  Metrics.UnitMethod,
-  Filters.Method;
+  Metrics.UnitMethod;
 
 type
   TUnitMetrics = class
@@ -20,9 +19,8 @@ type
     property Name: string read fName;
     function MethodsCount(): Integer;
     function GetMethod(aIdx: Integer): TUnitMethodMetrics;
+    function GetMethods: TList<TUnitMethodMetrics>;
     procedure AddMethod(const aMethodMetics: TUnitMethodMetrics);
-    function FilterMethods(aMethodFilters: TMethodFilters)
-      : TArray<TUnitMethodMetrics>;
   end;
 
 implementation
@@ -39,29 +37,14 @@ begin
   inherited;
 end;
 
-function TUnitMetrics.FilterMethods(aMethodFilters: TMethodFilters)
-  : TArray<TUnitMethodMetrics>;
-var
-  list: TList<TUnitMethodMetrics>;
-  method: TUnitMethodMetrics;
-begin
-  if aMethodFilters.Count = 0 then
-    Exit(fMethods.ToArray);
-  Result := nil;
-  list := TList<TUnitMethodMetrics>.Create;
-  try
-    for method in fMethods do
-      if aMethodFilters.IsMatching(method) then
-        list.Add(method);
-    Result := list.ToArray;
-  finally
-    list.Free;
-  end;
-end;
-
 function TUnitMetrics.GetMethod(aIdx: Integer): TUnitMethodMetrics;
 begin
   Result := fMethods[aIdx];
+end;
+
+function TUnitMetrics.GetMethods: TList<TUnitMethodMetrics>;
+begin
+  Result := fMethods;
 end;
 
 function TUnitMetrics.MethodsCount: Integer;
