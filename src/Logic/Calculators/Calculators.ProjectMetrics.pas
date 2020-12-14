@@ -31,8 +31,8 @@ type
     function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
   public
-    class function Calculate(const aFileName: string;
-      const aProjectMetrics: TProjectMetrics): TUnitMetrics; static;
+    class procedure Calculate(const aFileName: string;
+      const aProjectMetrics: TProjectMetrics); static;
   end;
 
 implementation
@@ -151,12 +151,13 @@ begin
     end;
 end;
 
-class function TProjectCalculator.Calculate(const aFileName: string;
-  const aProjectMetrics: TProjectMetrics): TUnitMetrics;
+class procedure TProjectCalculator.Calculate(const aFileName: string;
+  const aProjectMetrics: TProjectMetrics);
 var
   syntaxRootNode: TSyntaxNode;
   slUnitCode: TStringList;
   calculator: TProjectCalculator;
+  UnitM: TUnitMetrics;
 begin
   {
     if aIncludeFolder <> '' then
@@ -171,9 +172,9 @@ begin
       slUnitCode.LoadFromFile(aFileName);
       calculator := TProjectCalculator.Create();
       try
-        Result := calculator.CalculateUnit(aFileName, slUnitCode,
+        UnitM := calculator.CalculateUnit(aFileName, slUnitCode,
           syntaxRootNode);
-        aProjectMetrics.AddUnit(Result);
+        aProjectMetrics.AddUnit(UnitM);
       finally
         calculator.Free;
       end;

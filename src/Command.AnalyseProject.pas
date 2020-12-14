@@ -92,12 +92,16 @@ end;
 procedure TAnalyseProjectCommand.Execute(const aFiles: TArray<string>;
   aMethodFilters: TMethodFilters = nil);
 var
-  unitFileName: string;
+  idx: Integer;
   methods: TArray<TUnitMethodMetrics>;
 begin
   fReport.Clear;
-  for unitFileName in aFiles do
-    TProjectCalculator.Calculate(unitFileName, fProjectMetrics);
+  for idx := 0 to High(aFiles) do
+  begin
+    Write(Format('Progress: %d. (files: %d/%d)'#13,
+      [round(100 / Length(aFiles) * idx), idx, Length(aFiles)]));
+    TProjectCalculator.Calculate(aFiles[idx], fProjectMetrics);
+  end;
   methods := fProjectMetrics.FilterMethods(aMethodFilters);
   GeneratePlainText(methods);
   GenerateCsv(methods);
