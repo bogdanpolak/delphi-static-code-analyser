@@ -26,8 +26,9 @@ type
     function CalculateMethodMaxIndent(slCode: TStringList;
       const aMethodNode: TCompoundSyntaxNode): Integer;
     procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
-    function CalculateUnit(const aFileName: string; slUnitCode: TStringList;
-      const aRootNode: TSyntaxNode): TUnitMetrics;
+    procedure CalculateUnit(const aUnitName: string;
+  const slUnitCode: TStringList; const aRootNode: TSyntaxNode;
+  const aProjectMetrics: TProjectMetrics);
     function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
   public
@@ -132,23 +133,29 @@ end;
 
 // ---------------------------------------------------------------------
 
-function TProjectCalculator.CalculateUnit(const aFileName: string;
-  slUnitCode: TStringList; const aRootNode: TSyntaxNode): TUnitMetrics;
+procedure TProjectCalculator.CalculateUnit(const aUnitName: string;
+  const slUnitCode: TStringList; const aRootNode: TSyntaxNode;
+  const aProjectMetrics: TProjectMetrics);
 var
+  um: TUnitMetrics;
   implementationNode: TSyntaxNode;
   methodMetics: TUnitMethodMetrics;
   child: TSyntaxNode;
+  interfaceNode: TSyntaxNode;
 begin
-  // ---- interfaceNode := rootNode.FindNode(ntInterface);
-  Result := TUnitMetrics.Create(aFileName);
+  um := TUnitMetrics.Create(aUnitName);
+  interfaceNode := aRootNode.FindNode(ntInterface);
   implementationNode := aRootNode.FindNode(ntImplementation);
   for child in implementationNode.ChildNodes do
+  begin
     if child.Typ = ntMethod then
     begin
-      methodMetics := CalculateMethod(aFileName, slUnitCode,
+      methodMetics := CalculateMethod(aUnitName, slUnitCode,
         child as TCompoundSyntaxNode);
-      Result.AddMethod(methodMetics);
+      um.AddMethod(methodMetics);
     end;
+  end;
+  aProjectMetrics.AddUnit(um);
 end;
 
 class procedure TProjectCalculator.Calculate(const aFileName: string;
@@ -157,7 +164,6 @@ var
   syntaxRootNode: TSyntaxNode;
   slUnitCode: TStringList;
   calculator: TProjectCalculator;
-  UnitM: TUnitMetrics;
 begin
   {
     if aIncludeFolder <> '' then
@@ -172,9 +178,8 @@ begin
       slUnitCode.LoadFromFile(aFileName);
       calculator := TProjectCalculator.Create();
       try
-        UnitM := calculator.CalculateUnit(aFileName, slUnitCode,
-          syntaxRootNode);
-        aProjectMetrics.AddUnit(UnitM);
+        calculator.CalculateUnit(aFileName, slUnitCode,
+          syntaxRootNode, aProjectMetrics);
       finally
         calculator.Free;
       end;
