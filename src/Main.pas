@@ -16,9 +16,13 @@ uses
 type
   TApplicationMode = (amComplexityAnalysis, amFileAnalysis, amGenerateXml);
 
+const
+  ApplicationMode: TApplicationMode = amFileAnalysis;
+  SINGLE_FileName ='..\test\data\test05.UnitWithClass.pas';
+  XML_FileName = '..\test\data\testunit.pas';
+
+type
   TMain = class
-  public const
-    ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
     cmdAnalyseProject: TAnalyseProjectCommand;
@@ -114,12 +118,12 @@ begin
       end;
     amFileAnalysis:
       begin
-        cmdAnalyseProject.Execute(['..\test\data\test04.pas']);
+        cmdAnalyseProject.Execute([SINGLE_FileName]);
       end;
     amGenerateXml:
       begin
         fMethodFilters.Clear;
-        TGenerateXmlCommand.Generate('..\test\data\testunit.pas');
+        TGenerateXmlCommand.Generate(XML_FileName);
       end;
   end;
 end;
