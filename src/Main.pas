@@ -139,8 +139,10 @@ begin
     on E: Exception do
       writeln(E.ClassName, ': ', E.Message);
   end;
+{$IFDEF DEBUG}
   Write('... [press enter to close]');
   readln;
+{$ENDIF}
 end;
 
 end.
