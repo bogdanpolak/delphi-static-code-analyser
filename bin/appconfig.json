@@ -6,6 +6,6 @@
         "ComplexityLevel": 6,
         "MethodLength": 130
   },
-  "OutputFile": "..\\test\\Complexity.csv"
+  "OutputFile": "Complexity.csv"
 }
 
