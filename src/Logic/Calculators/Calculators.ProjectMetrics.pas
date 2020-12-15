@@ -133,6 +133,43 @@ end;
 
 // ---------------------------------------------------------------------
 
+procedure InterfaceWalker(const aNode: TSyntaxNode);
+var
+  node: TSyntaxNode;
+  t: TSyntaxNodeType;
+  attr: TAttributeEntry;
+  arr: TArray<string>;
+  s1: string;
+  s: string;
+  idx: Integer;
+begin
+  t := aNode.Typ;
+  SetLength(arr,Length(aNode.Attributes));
+  for idx:=0 to High(aNode.Attributes) do begin
+    attr := aNode.Attributes[idx];
+    case attr.Key of
+      anType: s1:='type';
+      anClass: s1:='class';
+      anForwarded: s1:='forward';
+      anKind: s1:='kind';
+      anName: s1:='name';
+      anVisibility: s1:='visibility';
+      anCallingConvention: s1:='callingConvention';
+      anPath: s1:='path';
+      anMethodBinding: s1:='methodBinding';
+      anReintroduce: s1:='reintroduce';
+      anOverload: s1:='overload';
+      anAbstract: s1:='abstract';
+      anInline: s1:='inline';
+    end;
+    arr[idx] := Format('%s=%s',[s1,attr.Value]);
+  end;
+  s := String.Join(';',arr);
+  if s='' then s:= '';
+  for node in aNode.ChildNodes do
+    InterfaceWalker(node);
+end;
+
 procedure TProjectCalculator.CalculateUnit(const aUnitName: string;
   const slUnitCode: TStringList; const aRootNode: TSyntaxNode;
   const aProjectMetrics: TProjectMetrics);
@@ -145,6 +182,7 @@ var
 begin
   um := TUnitMetrics.Create(aUnitName);
   interfaceNode := aRootNode.FindNode(ntInterface);
+  InterfaceWalker(interfaceNode);
   implementationNode := aRootNode.FindNode(ntImplementation);
   for child in implementationNode.ChildNodes do
   begin
