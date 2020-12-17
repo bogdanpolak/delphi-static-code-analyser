@@ -133,7 +133,7 @@ end;
 
 // ---------------------------------------------------------------------
 
-procedure InterfaceWalker(const aNode: TSyntaxNode);
+procedure InterfaceWalker(const aNode: TSyntaxNode; aLevel: integer = 0);
 var
   node: TSyntaxNode;
   t: TSyntaxNodeType;
@@ -144,6 +144,7 @@ var
   idx: Integer;
 begin
   t := aNode.Typ;
+  arr := [];
   SetLength(arr,Length(aNode.Attributes));
   for idx:=0 to High(aNode.Attributes) do begin
     attr := aNode.Attributes[idx];
@@ -167,7 +168,7 @@ begin
   s := String.Join(';',arr);
   if s='' then s:= '';
   for node in aNode.ChildNodes do
-    InterfaceWalker(node);
+    InterfaceWalker(node,aLevel+1);
 end;
 
 procedure TProjectCalculator.CalculateUnit(const aUnitName: string;
