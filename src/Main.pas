@@ -14,10 +14,10 @@ uses
   Filters.Method;
 
 type
-  TApplicationMode = (amComplexityAnalysis, amFileAnalysis, amGenerateXml);
+  TApplicationMode = (amComplexityAnalysis, amOneFile, amGenerateXml);
 
 const
-  ApplicationMode: TApplicationMode = amFileAnalysis;
+  ApplicationMode: TApplicationMode = amOneFile;
   SINGLE_FileName ='..\test\data\test05.UnitWithClass.pas';
   XML_FileName = '..\test\data\testunit.pas';
 
@@ -59,7 +59,7 @@ end;
 
 procedure TMain.WriteApplicationTitle();
 begin
-  if ApplicationMode in [amComplexityAnalysis, amFileAnalysis] then
+  if ApplicationMode in [amComplexityAnalysis, amOneFile] then
   begin
     writeln('DelphiAST - Static Code Analyser');
     writeln('----------------------------------');
@@ -116,7 +116,7 @@ begin
         cmdAnalyseProject.Execute(files, fMethodFilters);
         cmdAnalyseProject.SaveReportToFile(fAppConfiguration.GetOutputFile());
       end;
-    amFileAnalysis:
+    amOneFile:
       begin
         cmdAnalyseProject.Execute([SINGLE_FileName]);
       end;
