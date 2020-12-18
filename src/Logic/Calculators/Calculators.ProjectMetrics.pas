@@ -135,9 +135,27 @@ end;
 
 // ---------------------------------------------------------------------
 
+function SyntaxNodeTypeToStr(aSyntaxNodeType: TSyntaxNodeType): string;
+begin
+  Result := GetEnumName(TypeInfo(TSyntaxNodeType), Integer(aSyntaxNodeType));
+end;
+
 function AttributeNameToStr(aAttributeName: TAttributeName): string;
 begin
-  Result := GetEnumName(TypeInfo(TAttributeName), integer(aAttributeName));
+  Result := GetEnumName(TypeInfo(TAttributeName), Integer(aAttributeName));
+end;
+
+type
+  TStringArray = TArray<string>;
+
+  TStringArrayHelper = record helper for TStringArray
+    procedure Append(const s: string);
+  end;
+
+procedure TStringArrayHelper.Append(const s: string);
+begin
+  SetLength(self, Length(self) + 1);
+  self[Length(self) - 1] := s;
 end;
 
 procedure InterfaceWalker(const aNode: TSyntaxNode; aLevel: Integer = 0);
@@ -145,27 +163,22 @@ var
   node: TSyntaxNode;
   t: TSyntaxNodeType;
   arr: TArray<string>;
-  pair :TPair<TAttributeName, string>;
+  pair: TPair<TAttributeName, string>;
   s: string;
   idx: Integer;
-  value: string;
 begin
-  t := aNode.Typ;
-  arr := [];
-  SetLength(arr, Length(aNode.Attributes));
+  arr := [Format('nodeType=%s', [SyntaxNodeTypeToStr(aNode.Typ)])];
+  SetLength(arr, Length(aNode.Attributes) + 1);
   for idx := 0 to High(aNode.Attributes) do
   begin
     pair := aNode.Attributes[idx];
-    arr[idx] := Format('%s=%s', [AttributeNameToStr(pair.Key), pair.value]);
+    arr[idx + 1] := Format('%s=%s', [AttributeNameToStr(pair.Key), pair.value]);
   end;
   // value := IfThen(aNode is TValuedSyntaxNode, (aNode as TValuedSyntaxNode).Value, '')
   if aNode is TValuedSyntaxNode then
-    value := (aNode as TValuedSyntaxNode).Value
-  else
-    value := '';
+    arr.Append(Format('name=%s', [(aNode as TValuedSyntaxNode).value]));
+
   s := String.Join(';', arr);
-  if s = '' then
-    s := '';
   for node in aNode.ChildNodes do
     InterfaceWalker(node, aLevel + 1);
 end;
