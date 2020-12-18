@@ -6,6 +6,8 @@ uses
   System.SysUtils,
   System.Classes,
   System.Generics.Collections,
+  System.StrUtils,
+  System.TypInfo,
   DelphiAST,
   DelphiAST.Consts,
   DelphiAST.Classes,
@@ -27,8 +29,8 @@ type
       const aMethodNode: TCompoundSyntaxNode): Integer;
     procedure MinIndetationNodeWalker(const aNode: TSyntaxNode);
     procedure CalculateUnit(const aUnitName: string;
-  const slUnitCode: TStringList; const aRootNode: TSyntaxNode;
-  const aProjectMetrics: TProjectMetrics);
+      const slUnitCode: TStringList; const aRootNode: TSyntaxNode;
+      const aProjectMetrics: TProjectMetrics);
     function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
   public
@@ -133,42 +135,39 @@ end;
 
 // ---------------------------------------------------------------------
 
-procedure InterfaceWalker(const aNode: TSyntaxNode; aLevel: integer = 0);
+function AttributeNameToStr(aAttributeName: TAttributeName): string;
+begin
+  Result := GetEnumName(TypeInfo(TAttributeName), integer(aAttributeName));
+end;
+
+procedure InterfaceWalker(const aNode: TSyntaxNode; aLevel: Integer = 0);
 var
   node: TSyntaxNode;
   t: TSyntaxNodeType;
-  attr: TAttributeEntry;
   arr: TArray<string>;
-  s1: string;
+  pair :TPair<TAttributeName, string>;
   s: string;
   idx: Integer;
+  value: string;
 begin
   t := aNode.Typ;
   arr := [];
-  SetLength(arr,Length(aNode.Attributes));
-  for idx:=0 to High(aNode.Attributes) do begin
-    attr := aNode.Attributes[idx];
-    case attr.Key of
-      anType: s1:='type';
-      anClass: s1:='class';
-      anForwarded: s1:='forward';
-      anKind: s1:='kind';
-      anName: s1:='name';
-      anVisibility: s1:='visibility';
-      anCallingConvention: s1:='callingConvention';
-      anPath: s1:='path';
-      anMethodBinding: s1:='methodBinding';
-      anReintroduce: s1:='reintroduce';
-      anOverload: s1:='overload';
-      anAbstract: s1:='abstract';
-      anInline: s1:='inline';
-    end;
-    arr[idx] := Format('%s=%s',[s1,attr.Value]);
+  SetLength(arr, Length(aNode.Attributes));
+  for idx := 0 to High(aNode.Attributes) do
+  begin
+    pair := aNode.Attributes[idx];
+    arr[idx] := Format('%s=%s', [AttributeNameToStr(pair.Key), pair.value]);
   end;
-  s := String.Join(';',arr);
-  if s='' then s:= '';
+  // value := IfThen(aNode is TValuedSyntaxNode, (aNode as TValuedSyntaxNode).Value, '')
+  if aNode is TValuedSyntaxNode then
+    value := (aNode as TValuedSyntaxNode).Value
+  else
+    value := '';
+  s := String.Join(';', arr);
+  if s = '' then
+    s := '';
   for node in aNode.ChildNodes do
-    InterfaceWalker(node,aLevel+1);
+    InterfaceWalker(node, aLevel + 1);
 end;
 
 procedure TProjectCalculator.CalculateUnit(const aUnitName: string;
@@ -217,8 +216,8 @@ begin
       slUnitCode.LoadFromFile(aFileName);
       calculator := TProjectCalculator.Create();
       try
-        calculator.CalculateUnit(aFileName, slUnitCode,
-          syntaxRootNode, aProjectMetrics);
+        calculator.CalculateUnit(aFileName, slUnitCode, syntaxRootNode,
+          aProjectMetrics);
       finally
         calculator.Free;
       end;
