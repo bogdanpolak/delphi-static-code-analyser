@@ -7,6 +7,19 @@ uses
   FireDAC.Comp.Client;
 
 type
+  TMyEnum = (eValue1, eValue2, eValue3);
+  TMyClass = class;
+  TRecord = record
+    Provider: TMyClass;
+  end;
+  TObject = object
+  end;
+  TMyClass = class
+  end;
+  TArrayOfString = TArray<string>;
+  TDrawText = procedure(const Text: UnicodeString) of object;
+
+type
   TDataSetProxy = class
   end;
 
@@ -38,6 +51,7 @@ type
     function TryGetString(const aKey: string; out Content: string): Boolean;
   end;
 
+type
   TDatabaseJsonProvider = class(TInterfacedObject, IStringProvider)
   private
     fConnection: TFDConnection;
