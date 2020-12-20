@@ -161,7 +161,6 @@ end;
 procedure InterfaceWalker(const aNode: TSyntaxNode; aLevel: Integer = 0);
 var
   node: TSyntaxNode;
-  t: TSyntaxNodeType;
   arr: TArray<string>;
   pair: TPair<TAttributeName, string>;
   s: string;
@@ -174,10 +173,8 @@ begin
     pair := aNode.Attributes[idx];
     arr[idx + 1] := Format('%s=%s', [AttributeNameToStr(pair.Key), pair.value]);
   end;
-  // value := IfThen(aNode is TValuedSyntaxNode, (aNode as TValuedSyntaxNode).Value, '')
   if aNode is TValuedSyntaxNode then
     arr.Append(Format('name=%s', [(aNode as TValuedSyntaxNode).value]));
-
   s := String.Join(';', arr);
   for node in aNode.ChildNodes do
     InterfaceWalker(node, aLevel + 1);
