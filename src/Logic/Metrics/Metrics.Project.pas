@@ -18,17 +18,16 @@ type
   public
     constructor Create();
     destructor Destroy; override;
-    {}
+    { }
     function ClassCount(): Integer;
     function GetClass(aIdx: Integer): TClassMetrics;
     function AddClass(const aClassMetrics: TClassMetrics): TProjectMetrics;
-    {}
     function UnitCount(): Integer;
     function GetUnit(aIdx: Integer): TUnitMetrics;
     function AddUnit(const aUnitMetrics: TUnitMetrics): TProjectMetrics;
-    {}
-    function FilterMethods(
-      aMethodFilters: TMethodFilters): TArray<TUnitMethodMetrics>;
+    { }
+    function FilterMethods(aMethodFilters: TMethodFilters)
+      : TArray<TUnitMethodMetrics>;
   end;
 
 implementation
@@ -63,7 +62,8 @@ begin
   Result := fClasses.Items[aIdx];
 end;
 
-function TProjectMetrics.AddUnit(const aUnitMetrics: TUnitMetrics): TProjectMetrics;
+function TProjectMetrics.AddUnit(const aUnitMetrics: TUnitMetrics)
+  : TProjectMetrics;
 begin
   Result := self;
   fUnits.Add(aUnitMetrics);
@@ -85,22 +85,22 @@ var
   unitMetrics: TUnitMetrics;
   filteredMethods: TList<TUnitMethodMetrics>;
   methods: TList<TUnitMethodMetrics>;
-  method: TUnitMethodMetrics;
+  Method: TUnitMethodMetrics;
 begin
   filteredMethods := TList<TUnitMethodMetrics>.Create;
   try
     for unitMetrics in fUnits do
     begin
       methods := unitMetrics.GetMethods();
-      if (aMethodFilters=nil) or (aMethodFilters.Count = 0) then
+      if (aMethodFilters = nil) or (aMethodFilters.Count = 0) then
       begin
         filteredMethods.AddRange(methods);
       end
       else
       begin
-        for method in methods do
-          if aMethodFilters.IsMatching(method) then
-            filteredMethods.Add(method);
+        for Method in methods do
+          if aMethodFilters.IsMatching(Method) then
+            filteredMethods.Add(Method);
       end;
     end;
     Result := filteredMethods.ToArray;
