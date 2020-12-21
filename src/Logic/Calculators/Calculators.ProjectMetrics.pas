@@ -18,7 +18,8 @@ uses
   {}
   Metrics.UnitMethod,
   Metrics.UnitM,
-  Metrics.Project;
+  Metrics.Project,
+  Metrics.ClassM;
 
 type
   TProjectCalculator = class
@@ -33,6 +34,8 @@ type
       const aProjectMetrics: TProjectMetrics);
     function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
+    function ExtractAllClasses(
+      const aTypeNode: TSyntaxNode): TArray<TClassMetrics>;
   public
     class procedure Calculate(const aFileName: string;
       const aProjectMetrics: TProjectMetrics); static;
@@ -135,72 +138,43 @@ end;
 
 // ---------------------------------------------------------------------
 
-function SyntaxNodeTypeToStr(aSyntaxNodeType: TSyntaxNodeType): string;
+function TProjectCalculator.ExtractAllClasses(const aTypeNode: TSyntaxNode)
+  : TArray<TClassMetrics>;
 begin
-  Result := GetEnumName(TypeInfo(TSyntaxNodeType), Integer(aSyntaxNodeType));
-end;
-
-function AttributeNameToStr(aAttributeName: TAttributeName): string;
-begin
-  Result := GetEnumName(TypeInfo(TAttributeName), Integer(aAttributeName));
-end;
-
-type
-  TStringArray = TArray<string>;
-
-  TStringArrayHelper = record helper for TStringArray
-    procedure Append(const s: string);
-  end;
-
-procedure TStringArrayHelper.Append(const s: string);
-begin
-  SetLength(self, Length(self) + 1);
-  self[Length(self) - 1] := s;
-end;
-
-procedure InterfaceWalker(const aNode: TSyntaxNode; aLevel: Integer = 0);
-var
-  node: TSyntaxNode;
-  arr: TArray<string>;
-  pair: TPair<TAttributeName, string>;
-  s: string;
-  idx: Integer;
-begin
-  arr := [Format('nodeType=%s', [SyntaxNodeTypeToStr(aNode.Typ)])];
-  SetLength(arr, Length(aNode.Attributes) + 1);
-  for idx := 0 to High(aNode.Attributes) do
-  begin
-    pair := aNode.Attributes[idx];
-    arr[idx + 1] := Format('%s=%s', [AttributeNameToStr(pair.Key), pair.value]);
-  end;
-  if aNode is TValuedSyntaxNode then
-    arr.Append(Format('name=%s', [(aNode as TValuedSyntaxNode).value]));
-  s := String.Join(';', arr);
-  for node in aNode.ChildNodes do
-    InterfaceWalker(node, aLevel + 1);
+  // TODO: fild all childs (type = ntTypeDecl) which have sub child (nodeType=ntType; anType=class)
+  Result := nil;
 end;
 
 procedure TProjectCalculator.CalculateUnit(const aUnitName: string;
   const slUnitCode: TStringList; const aRootNode: TSyntaxNode;
   const aProjectMetrics: TProjectMetrics);
 var
-  um: TUnitMetrics;
+  unitMetrics: TUnitMetrics;
   implementationNode: TSyntaxNode;
   methodMetics: TUnitMethodMetrics;
-  child: TSyntaxNode;
+  node: TSyntaxNode;
   interfaceNode: TSyntaxNode;
+  publicTypeNodes: TArray<TSyntaxNode>;
+  classMetrics: TArray<TClassMetrics>;
 begin
-  um := TUnitMetrics.Create(aUnitName);
+  unitMetrics := TUnitMetrics.Create(aUnitName);
+  // --- Extract metrics: classes
   interfaceNode := aRootNode.FindNode(ntInterface);
-  InterfaceWalker(interfaceNode);
-  implementationNode := aRootNode.FindNode(ntImplementation);
-  for child in implementationNode.ChildNodes do
+  publicTypeNodes := interfaceNode.FindNodes(ntTypeSection);
+  for node in publicTypeNodes do
   begin
-    if child.Typ = ntMethod then
+    classMetrics := ExtractAllClasses(node);
+    aProjectMetrics.AddClassRange(classMetrics);
+  end;
+  // --- Extract metrics: methods (implemented in unit)
+  implementationNode := aRootNode.FindNode(ntImplementation);
+  for node in implementationNode.ChildNodes do
+  begin
+    if node.Typ = ntMethod then
     begin
       methodMetics := CalculateMethod(aUnitName, slUnitCode,
-        child as TCompoundSyntaxNode);
-      um.AddMethod(methodMetics);
+        node as TCompoundSyntaxNode);
+      unitMetrics.AddMethod(methodMetics);
     end;
   end;
   aProjectMetrics.AddUnit(um);
