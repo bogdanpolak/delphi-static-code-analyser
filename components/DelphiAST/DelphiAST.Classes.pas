@@ -74,6 +74,7 @@ type
     //   </ABSOLUTE>
     // </VARIABLE>.
     function FindNode(const TypesPath: array of TSyntaxNodeType): TSyntaxNode; overload;
+    function FindNodes(Typ: TSyntaxNodeType): TArray<TSyntaxNode>;
     property Attributes: TArray<TAttributeEntry> read FAttributes;
     property ChildNodes: TArray<TSyntaxNode> read FChildNodes;
     property HasAttributes: Boolean read GetHasAttributes;
@@ -473,6 +474,29 @@ begin
     if FChildNodes[i].Typ = Typ then
       Exit(FChildNodes[i]);
   Result := nil;
+end;
+
+function TSyntaxNode.FindNodes(Typ: TSyntaxNodeType): TArray<TSyntaxNode>;
+var
+  i: Integer;
+  counter: Integer;
+begin
+  counter:=0;
+  for i := 0 to High(FChildNodes) do
+  begin
+    if FChildNodes[i].Typ = Typ then
+      inc(counter);
+  end;
+  SetLength(Result, counter);
+  counter:=0;
+  for i := 0 to High(FChildNodes) do
+  begin
+    if FChildNodes[i].Typ = Typ then
+    begin
+      Result[counter] := FChildNodes[i];
+      inc(counter);
+    end;
+  end;
 end;
 
 function TSyntaxNode.FindNode(const TypesPath: array of TSyntaxNodeType): TSyntaxNode;
