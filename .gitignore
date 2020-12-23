@@ -109,3 +109,4 @@ test/data/mORMot
 src/Win32
 bin/Complexity.csv
 src/parsed-testunit.xml
+code_test05*.txt
