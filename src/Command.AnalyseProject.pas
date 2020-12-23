@@ -14,6 +14,8 @@ uses
   Metrics.Project,
   Metrics.UnitM,
   Metrics.UnitMethod,
+  Metrics.ClassM,
+  Metrics.ClassMethod,
   Filters.Method;
 
 type
@@ -24,6 +26,7 @@ type
     procedure GenerateCsv(const methods: TArray<TUnitMethodMetrics>);
     procedure GenerateMethodReportConsole(const methods
       : TArray<TUnitMethodMetrics>);
+    procedure GenerateClassReportConsole(const aClassMetrics: TClassMetrics);
   public
     constructor Create;
     destructor Destroy; override;
@@ -53,6 +56,24 @@ end;
 procedure TAnalyseProjectCommand.SaveReportToFile(const aFileName: string);
 begin
   fReport.SaveToFile(aFileName);
+end;
+
+procedure TAnalyseProjectCommand.GenerateClassReportConsole(const aClassMetrics
+  : TClassMetrics);
+var
+  method: TClassMethodMetrics;
+  prefix: string;
+begin
+  writeln(Format('%s = class',[aClassMetrics.NameOfClass]));
+  for method in aClassMetrics.GetMethods do
+  begin
+    case method.Visibility of
+      visPrivate: prefix := '-';
+      visProtected: prefix := '!';
+      visPublic: prefix := '+';
+    end;
+    writeln(Format('    %s %s',[prefix, method.Name]));
+  end;
 end;
 
 procedure TAnalyseProjectCommand.GenerateMethodReportConsole
@@ -96,6 +117,8 @@ procedure TAnalyseProjectCommand.Execute(const aFiles: TArray<string>;
 var
   idx: Integer;
   methods: TArray<TUnitMethodMetrics>;
+  classMetricsList: TArray<TClassMetrics>;
+  classMetrics: TClassMetrics;
 begin
   fReport.Clear;
   for idx := 0 to High(aFiles) do
@@ -104,7 +127,12 @@ begin
       [round(100 / Length(aFiles) * idx), idx, Length(aFiles)]));
     TProjectCalculator.Calculate(aFiles[idx], fProjectMetrics);
   end;
+  classMetricsList := fProjectMetrics.GetClassesAll();
   methods := fProjectMetrics.FilterMethods(aMethodFilters);
+  // ---- console report -----
+  for classMetrics in classMetricsList do
+    GenerateClassReportConsole(classMetrics);
+  writeln;
   GenerateMethodReportConsole(methods);
   // --------
   GenerateCsv(methods);
