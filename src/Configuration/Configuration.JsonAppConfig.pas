@@ -29,7 +29,7 @@ type
     procedure Initialize;
     function GetSourceFolders: TArray<string>;
     function GetOutputFile: string;
-    function HasFilters: boolean;
+    function HasFilters: Boolean;
     function GetFilterComplexityLevel: Integer;
     function GetFilterMethodLength: Integer;
   end;
@@ -73,7 +73,7 @@ begin
   Result := fSourceFolders;
 end;
 
-function TJsonAppConfiguration.HasFilters: boolean;
+function TJsonAppConfiguration.HasFilters: Boolean;
 begin
   Initialize;
   Result := fHasFilters;
@@ -114,45 +114,49 @@ begin
     Format('[AppConfig Error] Missing config file: %s', [fConfigFileName]));
   content := TFile.ReadAllText(fConfigFileName);
   jsAppConfig := TJSONObject.ParseJSONValue(content) as TJSONObject;
-  if jsAppConfig = nil then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Invalid JSON format of file %s',
-      [fConfigFileName]));
-  key := 'SourceFolders';
-  jsonValue := GetConfigValue(jsAppConfig, key);
-  if not(jsonValue is TJSONArray) then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Key %s has invalid value, expected array.',
-      [key]));
-  jsonScrFolders := jsonValue as TJSONArray;
-  if jsonScrFolders.Count = 0 then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Key %s has no values', [key]));
-  SetLength(fSourceFolders, jsonScrFolders.Count);
-  for idx := 0 to jsonScrFolders.Count - 1 do
-  begin
-    foldername := jsonScrFolders[idx].value;
-    if not DirectoryExists(foldername) then
+  try
+    if jsAppConfig = nil then
       raise EAssertionFailed.Create
-        (Format('[AppConfig Error] One of values "%s" is not existing folder',
-        [foldername]));
-    fSourceFolders[idx] := foldername;
-  end;
-  // --
-  key := 'OutputFile';
-  fOutputFile := GetConfigValue(jsAppConfig, key).value;
-  if fOutputFile = '' then
-    raise EAssertionFailed.Create
-      (Format('[AppConfig Error] Expected output file path in "%s".', [key]));
-  // --
-  key := 'Filters';
-  fHasFilters := jsAppConfig.TryGetValue<TJSONObject>(key, jsonFilters);
-  fComplexityLevel := 0;
-  fMethodLength := 0;
-  if fHasFilters then
-  begin
-    jsonFilters.TryGetValue<Integer>('ComplexityLevel', fComplexityLevel);
-    jsonFilters.TryGetValue<Integer>('MethodLength', fMethodLength);
+        (Format('[AppConfig Error] Invalid JSON format of file %s',
+        [fConfigFileName]));
+    key := 'SourceFolders';
+    jsonValue := GetConfigValue(jsAppConfig, key);
+    if not(jsonValue is TJSONArray) then
+      raise EAssertionFailed.Create
+        (Format('[AppConfig Error] Key %s has invalid value, expected array.',
+        [key]));
+    jsonScrFolders := jsonValue as TJSONArray;
+    if jsonScrFolders.Count = 0 then
+      raise EAssertionFailed.Create
+        (Format('[AppConfig Error] Key %s has no values', [key]));
+    SetLength(fSourceFolders, jsonScrFolders.Count);
+    for idx := 0 to jsonScrFolders.Count - 1 do
+    begin
+      foldername := jsonScrFolders[idx].value;
+      if not DirectoryExists(foldername) then
+        raise EAssertionFailed.Create
+          (Format('[AppConfig Error] One of values "%s" is not existing folder',
+          [foldername]));
+      fSourceFolders[idx] := foldername;
+    end;
+    // --
+    key := 'OutputFile';
+    fOutputFile := GetConfigValue(jsAppConfig, key).value;
+    if fOutputFile = '' then
+      raise EAssertionFailed.Create
+        (Format('[AppConfig Error] Expected output file path in "%s".', [key]));
+    // --
+    key := 'Filters';
+    fHasFilters := jsAppConfig.TryGetValue<TJSONObject>(key, jsonFilters);
+    fComplexityLevel := 0;
+    fMethodLength := 0;
+    if fHasFilters then
+    begin
+      jsonFilters.TryGetValue<Integer>('ComplexityLevel', fComplexityLevel);
+      jsonFilters.TryGetValue<Integer>('MethodLength', fMethodLength);
+    end;
+  finally
+    jsAppConfig.Free;
   end;
 end;
 
