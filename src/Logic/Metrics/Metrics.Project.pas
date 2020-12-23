@@ -21,6 +21,7 @@ type
     { }
     function ClassCount(): Integer;
     function GetClass(aIdx: Integer): TClassMetrics;
+    function GetClassesAll(): TArray<TClassMetrics>;
     function AddClass(const aClassMetrics: TClassMetrics): TProjectMetrics;
     function AddClassRange(const aClassMetrics: TArray<TClassMetrics>)
       : TProjectMetrics;
@@ -70,6 +71,11 @@ end;
 function TProjectMetrics.GetClass(aIdx: Integer): TClassMetrics;
 begin
   Result := fClasses.Items[aIdx];
+end;
+
+function TProjectMetrics.GetClassesAll: TArray<TClassMetrics>;
+begin
+  Result := fClasses.ToArray;
 end;
 
 function TProjectMetrics.AddUnit(const aUnitMetrics: TUnitMetrics)
