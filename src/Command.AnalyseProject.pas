@@ -25,7 +25,7 @@ type
     procedure GeneratePlainText(const methods: TArray<TUnitMethodMetrics>);
   public
     constructor Create;
-    destructor Destory;
+    destructor Destroy; override;
     procedure Execute(const aFiles: TArray<string>;
       aMethodFilters: TMethodFilters = nil);
     procedure SaveReportToFile(const aFileName: string);
@@ -42,10 +42,11 @@ begin
   fProjectMetrics := TProjectMetrics.Create;
 end;
 
-destructor TAnalyseProjectCommand.Destory;
+destructor TAnalyseProjectCommand.Destroy;
 begin
   fProjectMetrics.Free;
   fReport.Free;
+  inherited;
 end;
 
 procedure TAnalyseProjectCommand.SaveReportToFile(const aFileName: string);

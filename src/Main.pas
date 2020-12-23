@@ -33,7 +33,7 @@ type
     procedure ApplicationRun;
   public
     constructor Create(const aAppConfiguration: IAppConfiguration);
-    destructor Destory;
+    destructor Destroy; override;
     class procedure Run(const aAppConfiguration: IAppConfiguration); static;
   end;
 
@@ -51,10 +51,11 @@ begin
   fMethodFilters := TMethodFilters.Create;
 end;
 
-destructor TMain.Destory;
+destructor TMain.Destroy;
 begin
   fMethodFilters.Free;
   cmdAnalyseProject.Free;
+  inherited;
 end;
 
 procedure TMain.WriteApplicationTitle();
@@ -144,6 +145,7 @@ begin
       writeln(E.ClassName, ': ', E.Message);
   end;
 {$IFDEF DEBUG}
+  ReportMemoryLeaksOnShutdown := True;
   Write('... [press enter to close]');
   readln;
 {$ENDIF}
