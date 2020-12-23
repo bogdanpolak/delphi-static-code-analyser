@@ -22,7 +22,8 @@ type
     fReport: TStringList;
     fProjectMetrics: TProjectMetrics;
     procedure GenerateCsv(const methods: TArray<TUnitMethodMetrics>);
-    procedure GeneratePlainText(const methods: TArray<TUnitMethodMetrics>);
+    procedure GenerateMethodReportConsole(const methods
+      : TArray<TUnitMethodMetrics>);
   public
     constructor Create;
     destructor Destroy; override;
@@ -54,8 +55,8 @@ begin
   fReport.SaveToFile(aFileName);
 end;
 
-procedure TAnalyseProjectCommand.GeneratePlainText(const methods
-  : TArray<TUnitMethodMetrics>);
+procedure TAnalyseProjectCommand.GenerateMethodReportConsole
+  (const methods: TArray<TUnitMethodMetrics>);
 var
   Method: TUnitMethodMetrics;
   previousUnit: string;
@@ -104,7 +105,8 @@ begin
     TProjectCalculator.Calculate(aFiles[idx], fProjectMetrics);
   end;
   methods := fProjectMetrics.FilterMethods(aMethodFilters);
-  GeneratePlainText(methods);
+  GenerateMethodReportConsole(methods);
+  // --------
   GenerateCsv(methods);
 end;
 
