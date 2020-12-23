@@ -14,7 +14,7 @@ type
     fUnitFullPath: string;
     fNameOfClass: string;
     fNameOfUnit: string;
-    fClassMethods: TList<TClassMethodMetrics>;
+    fClassMethods: TObjectList<TClassMethodMetrics>;
   public
     constructor Create(const aUnitFullPath: string; const aNameOfClass: string);
     destructor Destroy; override;
@@ -35,7 +35,7 @@ begin
   fUnitFullPath := aUnitFullPath;
   fNameOfClass := aNameOfClass;
   fNameOfUnit := ExtractFileName(fUnitFullPath);
-  fClassMethods := TList<TClassMethodMetrics>.Create;
+  fClassMethods := TObjectList<TClassMethodMetrics>.Create;
 end;
 
 destructor TClassMetrics.Destroy;
