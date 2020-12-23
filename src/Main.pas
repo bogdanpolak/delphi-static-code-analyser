@@ -14,11 +14,15 @@ uses
   Filters.Method;
 
 type
-  TApplicationMode = (amComplexityAnalysis, amFileAnalysis, amGenerateXml);
+  TApplicationMode = (amComplexityAnalysis, amOneFile, amGenerateXml);
 
+const
+  ApplicationMode: TApplicationMode = amOneFile;
+  SINGLE_FileName ='..\test\data\test05.UnitWithClass.pas';
+  XML_FileName = '..\test\data\testunit.pas';
+
+type
   TMain = class
-  public const
-    ApplicationMode: TApplicationMode = amComplexityAnalysis;
   private
     fAppConfiguration: IAppConfiguration;
     cmdAnalyseProject: TAnalyseProjectCommand;
@@ -29,7 +33,7 @@ type
     procedure ApplicationRun;
   public
     constructor Create(const aAppConfiguration: IAppConfiguration);
-    destructor Destory;
+    destructor Destroy; override;
     class procedure Run(const aAppConfiguration: IAppConfiguration); static;
   end;
 
@@ -47,15 +51,16 @@ begin
   fMethodFilters := TMethodFilters.Create;
 end;
 
-destructor TMain.Destory;
+destructor TMain.Destroy;
 begin
   fMethodFilters.Free;
   cmdAnalyseProject.Free;
+  inherited;
 end;
 
 procedure TMain.WriteApplicationTitle();
 begin
-  if ApplicationMode in [amComplexityAnalysis, amFileAnalysis] then
+  if ApplicationMode in [amComplexityAnalysis, amOneFile] then
   begin
     writeln('DelphiAST - Static Code Analyser');
     writeln('----------------------------------');
@@ -112,14 +117,14 @@ begin
         cmdAnalyseProject.Execute(files, fMethodFilters);
         cmdAnalyseProject.SaveReportToFile(fAppConfiguration.GetOutputFile());
       end;
-    amFileAnalysis:
+    amOneFile:
       begin
-        cmdAnalyseProject.Execute(['..\test\data\test04.pas']);
+        cmdAnalyseProject.Execute([SINGLE_FileName]);
       end;
     amGenerateXml:
       begin
         fMethodFilters.Clear;
-        TGenerateXmlCommand.Generate('..\test\data\testunit.pas');
+        TGenerateXmlCommand.Generate(XML_FileName);
       end;
   end;
 end;
@@ -139,8 +144,11 @@ begin
     on E: Exception do
       writeln(E.ClassName, ': ', E.Message);
   end;
+{$IFDEF DEBUG}
+  ReportMemoryLeaksOnShutdown := True;
   Write('... [press enter to close]');
   readln;
+{$ENDIF}
 end;
 
 end.

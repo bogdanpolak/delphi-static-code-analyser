@@ -14,14 +14,15 @@ type
     fUnitFullPath: string;
     fNameOfClass: string;
     fNameOfUnit: string;
-    fClassMethods: TList<TClassMethodMetrics>;
+    fClassMethods: TObjectList<TClassMethodMetrics>;
   public
     constructor Create(const aUnitFullPath: string; const aNameOfClass: string);
     destructor Destroy; override;
     {}
-    function AddClassMethod(const aClassMethod: TClassMethodMetrics): TClassMetrics;
+    procedure AddClassMethod(aVisibility: TVisibility; const aName: string);
     function MethodCount: Integer;
     function GetMethod(const aIdx: Integer): TClassMethodMetrics;
+    function GetMethods(): TArray<TClassMethodMetrics>;
     {}
     property UnitFullPath: string read fUnitFullPath;
     property NameOfClass: string read fNameOfClass;
@@ -35,7 +36,7 @@ begin
   fUnitFullPath := aUnitFullPath;
   fNameOfClass := aNameOfClass;
   fNameOfUnit := ExtractFileName(fUnitFullPath);
-  fClassMethods := TList<TClassMethodMetrics>.Create;
+  fClassMethods := TObjectList<TClassMethodMetrics>.Create;
 end;
 
 destructor TClassMetrics.Destroy;
@@ -44,16 +45,20 @@ begin
   inherited;
 end;
 
-function TClassMetrics.AddClassMethod(
-  const aClassMethod: TClassMethodMetrics): TClassMetrics;
+procedure TClassMetrics.AddClassMethod(aVisibility: TVisibility;
+  const aName: string);
 begin
-  Result := self;
-  fClassMethods.Add(aClassMethod);
+  fClassMethods.Add(TClassMethodMetrics.Create(aVisibility, aName));
 end;
 
 function TClassMetrics.GetMethod(const aIdx: Integer): TClassMethodMetrics;
 begin
   Result := fClassMethods[aIdx];
+end;
+
+function TClassMetrics.GetMethods: TArray<TClassMethodMetrics>;
+begin
+  Result := fClassMethods.ToArray;
 end;
 
 function TClassMetrics.MethodCount: Integer;

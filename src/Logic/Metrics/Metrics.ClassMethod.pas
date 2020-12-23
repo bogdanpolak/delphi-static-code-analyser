@@ -16,8 +16,8 @@ type
     fName: string;
     fUnitMethod: TUnitMethodMetrics;
   public
-    constructor Create(aVisibility: TVisibility; const aName: string;
-      const aUnitMethod: TUnitMethodMetrics);
+    constructor Create(aVisibility: TVisibility; const aName: string);
+    function WithCorrespondingUnitMethod(const aUnitMethod: TUnitMethodMetrics): TClassMethodMetrics;
     property Visibility: TVisibility read fVisibility;
     property Name: string read fName;
     property UnitMethod: TUnitMethodMetrics read fUnitMethod;
@@ -25,12 +25,18 @@ type
 
 implementation
 
-constructor TClassMethodMetrics.Create(aVisibility: TVisibility;
-  const aName: string; const aUnitMethod: TUnitMethodMetrics);
+constructor TClassMethodMetrics.Create(aVisibility: TVisibility; const aName: string);
 begin
   fVisibility := aVisibility;
   fName := aName;
+  fUnitMethod := nil;
+end;
+
+function TClassMethodMetrics.WithCorrespondingUnitMethod(
+  const aUnitMethod: TUnitMethodMetrics): TClassMethodMetrics;
+begin
   fUnitMethod := aUnitMethod;
+  Result := Self;
 end;
 
 end.

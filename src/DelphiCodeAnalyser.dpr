@@ -31,7 +31,9 @@ uses
   Main in 'Main.pas',
   Command.AnalyseProject in 'Command.AnalyseProject.pas',
   Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
-  Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas';
+  Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas',
+  test05.UnitWithClass in '..\test\data\test05.UnitWithClass.pas',
+  test05.Support in '..\test\data\test05.Support.pas';
 
 var
   appConfiguration: IAppConfiguration;
