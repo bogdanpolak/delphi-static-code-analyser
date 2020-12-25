@@ -35,10 +35,10 @@ type
       const aProjectMetrics: TProjectMetrics);
     function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
-    function ExtractAllClasses(const aUnitName: string;
+    function AnalyseClassesInUnit(const aUnitName: string;
       const aTypeNode: TSyntaxNode): TArray<TClassMetrics>;
-    procedure AddClassMethods(const aClassMetrics: TClassMetrics;
-      const aPublishedSectionNode: TSyntaxNode);
+    function BuildClassMetrics(const aUnitName: string;
+      const aClassNode: TSyntaxNode): TClassMetrics;
   public
     class procedure Calculate(const aFileName: string;
       const aProjectMetrics: TProjectMetrics); static;
@@ -146,6 +146,7 @@ type
   public
     function HasClassChildNode(): boolean;
     function IsTypeDeclaration(): boolean;
+    function IsClassNode(): boolean;
   end;
 
 function TSyntaxNodeExtention.HasClassChildNode(): boolean;
@@ -154,13 +155,22 @@ begin
     (Self.ChildNodes[0].GetAttribute(anType) = 'class');
 end;
 
+function TSyntaxNodeExtention.IsClassNode(): boolean;
+begin
+  Result := (Self.IsTypeDeclaration()) and (Self.HasClassChildNode());
+end;
+
 function TSyntaxNodeExtention.IsTypeDeclaration(): boolean;
 begin
   Result := (Self.typ = ntTypeDecl);
 end;
 
-procedure TProjectCalculator.AddClassMethods(const aClassMetrics: TClassMetrics;
-  const aPublishedSectionNode: TSyntaxNode);
+function TProjectCalculator.BuildClassMetrics(const aUnitName: string;
+  const aClassNode: TSyntaxNode): TClassMetrics;
+var
+  classMetrics: TClassMetrics;
+  nameofClass: string;
+  publishedSectionNode: TSyntaxNode;
 
   procedure AddClassSectionMethods(const aVisibilty: TVisibility;
     const aSectionRootNodes: TArray<TSyntaxNode>);
@@ -173,53 +183,41 @@ procedure TProjectCalculator.AddClassMethods(const aClassMetrics: TClassMetrics;
     begin
       methodNodes := sectionRootNode.FindNodes(ntMethod);
       for node in methodNodes do
-        aClassMetrics.AddClassMethod(aVisibilty, node.GetAttribute(anName));
+        classMetrics.AddClassMethod(aVisibilty, node.GetAttribute(anName));
     end;
   end;
 
 begin
-  AddClassSectionMethods(visPublic, [aPublishedSectionNode]);
-  AddClassSectionMethods(visPrivate,
-    aPublishedSectionNode.FindNodes(ntPrivate));
-  AddClassSectionMethods(visPrivate,
-    aPublishedSectionNode.FindNodes(ntStrictPrivate));
+  nameofClass := aClassNode.GetAttribute(anName);
+  publishedSectionNode := aClassNode.ChildNodes[0];
+  classMetrics := TClassMetrics.Create(aUnitName, nameofClass);
+  { private sections - methods }
+  AddClassSectionMethods(visPrivate, publishedSectionNode.FindNodes(ntPrivate) +
+    publishedSectionNode.FindNodes(ntStrictPrivate));
+  { protected sections - methods }
   AddClassSectionMethods(visProtected,
-    aPublishedSectionNode.FindNodes(ntProtected));
-  AddClassSectionMethods(visProtected,
-    aPublishedSectionNode.FindNodes(ntStrictProtected));
-  AddClassSectionMethods(visPublic, aPublishedSectionNode.FindNodes(ntPublic));
-  AddClassSectionMethods(visPublic,
-    aPublishedSectionNode.FindNodes(ntPublished));
+    publishedSectionNode.FindNodes(ntProtected) + publishedSectionNode.FindNodes
+    (ntStrictProtected));
+  { public sections - methods }
+  AddClassSectionMethods(visPublic, [publishedSectionNode] +
+    publishedSectionNode.FindNodes(ntPublic) + publishedSectionNode.FindNodes
+    (ntPublished));
+  { ---- }
+  Result := classMetrics;
 end;
 
-function TProjectCalculator.ExtractAllClasses(const aUnitName: string;
+function TProjectCalculator.AnalyseClassesInUnit(const aUnitName: string;
   const aTypeNode: TSyntaxNode): TArray<TClassMetrics>;
 var
   classMetricsList: TList<TClassMetrics>;
-  children: TArray<TSyntaxNode>;
   childNode: TSyntaxNode;
-  IsClassNode: boolean;
-  nameofClass: string;
-  classMetrics: TClassMetrics;
-  publishedSectionNode: TSyntaxNode;
 begin
   Result := nil;
   classMetricsList := TList<TClassMetrics>.Create();
   try
-    children := aTypeNode.ChildNodes;
-    for childNode in children do
-    begin
-      IsClassNode := (childNode.IsTypeDeclaration()) and
-        (childNode.HasClassChildNode());
-      if IsClassNode then
-      begin
-        publishedSectionNode := childNode.ChildNodes[0];
-        nameofClass := childNode.GetAttribute(anName);
-        classMetrics := TClassMetrics.Create(aUnitName, nameofClass);
-        AddClassMethods(classMetrics, publishedSectionNode);
-        classMetricsList.Add(classMetrics);
-      end;
-    end;
+    for childNode in aTypeNode.ChildNodes do
+      if childNode.IsClassNode() then
+        classMetricsList.Add(BuildClassMetrics(aUnitName, childNode));
     Result := classMetricsList.ToArray;
   finally
     classMetricsList.Free;
@@ -244,7 +242,7 @@ begin
   publicTypeNodes := interfaceNode.FindNodes(ntTypeSection);
   for node in publicTypeNodes do
   begin
-    classMetrics := ExtractAllClasses(aUnitName, node);
+    classMetrics := AnalyseClassesInUnit(aUnitName, node);
     aProjectMetrics.AddClassRange(classMetrics);
   end;
   // --- Extract metrics: methods (implemented in unit)
