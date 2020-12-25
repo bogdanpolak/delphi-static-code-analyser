@@ -33,7 +33,8 @@ uses
   Configuration.AppConfig in 'Configuration\Configuration.AppConfig.pas',
   Configuration.JsonAppConfig in 'Configuration\Configuration.JsonAppConfig.pas',
   test05.UnitWithClass in '..\test\data\test05.UnitWithClass.pas',
-  test05.Support in '..\test\data\test05.Support.pas';
+  test05.Support in '..\test\data\test05.Support.pas',
+  Helper.TSyntaxNode in 'Helper\Helper.TSyntaxNode.pas';
 
 var
   appConfiguration: IAppConfiguration;

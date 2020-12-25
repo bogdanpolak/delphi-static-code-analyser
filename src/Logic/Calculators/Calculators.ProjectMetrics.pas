@@ -47,7 +47,8 @@ type
 implementation
 
 uses
-  Utils.IntegerArray;
+  Utils.IntegerArray,
+  Helper.TSyntaxNode;
 
 // ---------------------------------------------------------------------
 // calculators
@@ -140,30 +141,6 @@ begin
 end;
 
 // ---------------------------------------------------------------------
-
-type
-  TSyntaxNodeExtention = class helper for TSyntaxNode
-  public
-    function HasClassChildNode(): boolean;
-    function IsTypeDeclaration(): boolean;
-    function IsClassNode(): boolean;
-  end;
-
-function TSyntaxNodeExtention.HasClassChildNode(): boolean;
-begin
-  Result := (Self.HasChildren) and (Self.ChildNodes[0].typ = ntType) and
-    (Self.ChildNodes[0].GetAttribute(anType) = 'class');
-end;
-
-function TSyntaxNodeExtention.IsClassNode(): boolean;
-begin
-  Result := (Self.IsTypeDeclaration()) and (Self.HasClassChildNode());
-end;
-
-function TSyntaxNodeExtention.IsTypeDeclaration(): boolean;
-begin
-  Result := (Self.typ = ntTypeDecl);
-end;
 
 function TProjectCalculator.BuildClassMetrics(const aUnitName: string;
   const aClassNode: TSyntaxNode): TClassMetrics;
