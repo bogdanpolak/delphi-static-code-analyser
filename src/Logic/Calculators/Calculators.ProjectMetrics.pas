@@ -220,7 +220,7 @@ begin
   for node in publicTypeNodes do
   begin
     classMetrics := AnalyseClassesInUnit(aUnitName, node);
-    aProjectMetrics.AddClassRange(classMetrics);
+    aProjectMetrics.AddClasses(classMetrics);
   end;
   // --- Extract metrics: methods (implemented in unit)
   implementationNode := aRootNode.FindNode(ntImplementation);
