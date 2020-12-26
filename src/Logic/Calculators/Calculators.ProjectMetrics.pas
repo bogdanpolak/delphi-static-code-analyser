@@ -39,6 +39,8 @@ type
       const aTypeNode: TSyntaxNode): TArray<TClassMetrics>;
     function BuildClassMetrics(const aUnitName: string;
       const aClassNode: TSyntaxNode): TClassMetrics;
+    procedure JoinCorrespondingMethods(aClassMetricsArray
+      : TArray<TClassMetrics>; unitMetrics: TUnitMetrics);
   public
     class procedure Calculate(const aFileName: string;
       const aProjectMetrics: TProjectMetrics); static;
@@ -201,6 +203,12 @@ begin
   end;
 end;
 
+procedure TProjectCalculator.JoinCorrespondingMethods(aClassMetricsArray
+  : TArray<TClassMetrics>; unitMetrics: TUnitMetrics);
+begin
+  // TODO: ...
+end;
+
 procedure TProjectCalculator.CalculateUnit(const aUnitName: string;
   const slUnitCode: TStringList; const aRootNode: TSyntaxNode;
   const aProjectMetrics: TProjectMetrics);
@@ -211,19 +219,21 @@ var
   node: TSyntaxNode;
   interfaceNode: TSyntaxNode;
   publicTypeNodes: TArray<TSyntaxNode>;
-  classMetrics: TArray<TClassMetrics>;
+  classMetricsArray: TArray<TClassMetrics>;
 begin
-  unitMetrics := TUnitMetrics.Create(aUnitName);
   // --- Extract metrics: classes
   interfaceNode := aRootNode.FindNode(ntInterface);
   publicTypeNodes := interfaceNode.FindNodes(ntTypeSection);
+  classMetricsArray := nil;
   for node in publicTypeNodes do
   begin
-    classMetrics := AnalyseClassesInUnit(aUnitName, node);
-    aProjectMetrics.AddClasses(classMetrics);
+    classMetricsArray := classMetricsArray + AnalyseClassesInUnit
+      (aUnitName, node);
   end;
+  aProjectMetrics.AddClasses(classMetricsArray);
   // --- Extract metrics: methods (implemented in unit)
   implementationNode := aRootNode.FindNode(ntImplementation);
+  unitMetrics := TUnitMetrics.Create(aUnitName);
   for node in implementationNode.ChildNodes do
   begin
     if node.typ = ntMethod then
@@ -234,6 +244,8 @@ begin
     end;
   end;
   aProjectMetrics.AddUnit(unitMetrics);
+  // ----
+  JoinCorrespondingMethods(classMetricsArray,unitMetrics);
 end;
 
 class procedure TProjectCalculator.Calculate(const aFileName: string;
