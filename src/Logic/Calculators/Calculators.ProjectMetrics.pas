@@ -39,8 +39,8 @@ type
       const aTypeNode: TSyntaxNode): TArray<TClassMetrics>;
     function BuildClassMetrics(const aUnitName: string;
       const aClassNode: TSyntaxNode): TClassMetrics;
-    procedure JoinCorrespondingMethods(aClassMetricsArray
-      : TArray<TClassMetrics>; unitMetrics: TUnitMetrics);
+    procedure JoinCorrespondingMethods(const aClassMetricsArray
+      : TArray<TClassMetrics>; const aUnitMetrics: TUnitMetrics);
   public
     class procedure Calculate(const aFileName: string;
       const aProjectMetrics: TProjectMetrics); static;
@@ -203,10 +203,41 @@ begin
   end;
 end;
 
-procedure TProjectCalculator.JoinCorrespondingMethods(aClassMetricsArray
-  : TArray<TClassMetrics>; unitMetrics: TUnitMetrics);
+procedure TProjectCalculator.JoinCorrespondingMethods(const aClassMetricsArray
+  : TArray<TClassMetrics>; const aUnitMetrics: TUnitMetrics);
+var
+  classMetrics: TClassMetrics;
+  classMethodMetrics: TClassMethodMetrics;
+  nameofClass: string;
+  classMethodMetricsArray: TArray<TClassMethodMetrics>;
+  unitMethodMetricsArray: TArray<TUnitMethodMetrics>;
+  i: Integer;
+  j: Integer;
+  qualifiedName: string;
 begin
-  // TODO: ...
+  for classMetrics in aClassMetricsArray do
+  begin
+    nameofClass := classMetrics.nameofClass;
+    classMethodMetricsArray := classMetrics.GetMethodsSorted();
+    unitMethodMetricsArray := aUnitMetrics.GetMethodsSorted(nameofClass);
+    i := 0;
+    j := 0;
+    while (i < Length(classMethodMetricsArray)) and
+      (j < Length(unitMethodMetricsArray)) do
+    begin
+      qualifiedName := (nameofClass + '.' + classMethodMetricsArray[i].Name);
+      while (j < Length(unitMethodMetricsArray)) and
+        not(unitMethodMetricsArray[j].HasName(qualifiedName)) do
+        inc(j);
+      if (j < Length(unitMethodMetricsArray)) then
+      begin
+        classMethodMetricsArray[i].WithCorrespondingUnitMethod
+          (unitMethodMetricsArray[j]);
+        inc(i);
+        inc(j);
+      end;
+    end;
+  end;
 end;
 
 procedure TProjectCalculator.CalculateUnit(const aUnitName: string;
@@ -245,7 +276,7 @@ begin
   end;
   aProjectMetrics.AddUnit(unitMetrics);
   // ----
-  JoinCorrespondingMethods(classMetricsArray,unitMetrics);
+  JoinCorrespondingMethods(classMetricsArray, unitMetrics);
 end;
 
 class procedure TProjectCalculator.Calculate(const aFileName: string;
