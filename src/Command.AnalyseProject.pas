@@ -61,18 +61,16 @@ end;
 procedure TAnalyseProjectCommand.GenerateClassReportConsole(const aClassMetrics
   : TClassMetrics);
 var
-  method: TClassMethodMetrics;
-  prefix: string;
+  Method: TClassMethodMetrics;
 begin
-  writeln(Format('%s = class',[aClassMetrics.NameOfClass]));
-  for method in aClassMetrics.GetMethods do
+  writeln(Format('%s = class', [aClassMetrics.NameOfClass]));
+  for Method in aClassMetrics.GetMethods do
   begin
-    case method.Visibility of
-      visPrivate: prefix := '-';
-      visProtected: prefix := '!';
-      visPublic: prefix := '+';
-    end;
-    writeln(Format('    %s %s',[prefix, method.Name]));
+    if Method.UnitMethod = nil then
+      writeln(Format('    %s %s', [Method.Visibility.ToSymbol(), Method.Name]))
+    else
+      writeln(Format('    %s %s  =>  %s [L:%d]', [Method.Visibility.ToSymbol(),
+        Method.Name, Method.UnitMethod.Name, Method.UnitMethod.Lenght]));
   end;
 end;
 

@@ -35,10 +35,12 @@ type
       const aProjectMetrics: TProjectMetrics);
     function CalculateMethod(const aNameOfUnit: string; slUnitCode: TStringList;
       aMethodNode: TCompoundSyntaxNode): TUnitMethodMetrics;
-    function ExtractAllClasses(const aUnitName: string;
+    function AnalyseClassesInUnit(const aUnitName: string;
       const aTypeNode: TSyntaxNode): TArray<TClassMetrics>;
-    procedure AddClassMethods(const aClassMetrics: TClassMetrics;
-      const aPublishedSectionNode: TSyntaxNode);
+    function BuildClassMetrics(const aUnitName: string;
+      const aClassNode: TSyntaxNode): TClassMetrics;
+    procedure JoinCorrespondingMethods(const aClassMetricsArray
+      : TArray<TClassMetrics>; const aUnitMetrics: TUnitMetrics);
   public
     class procedure Calculate(const aFileName: string;
       const aProjectMetrics: TProjectMetrics); static;
@@ -47,7 +49,8 @@ type
 implementation
 
 uses
-  Utils.IntegerArray;
+  Utils.IntegerArray,
+  Helper.TSyntaxNode;
 
 // ---------------------------------------------------------------------
 // calculators
@@ -141,26 +144,12 @@ end;
 
 // ---------------------------------------------------------------------
 
-type
-  TSyntaxNodeExtention = class helper for TSyntaxNode
-  public
-    function HasClassChildNode(): boolean;
-    function IsTypeDeclaration(): boolean;
-  end;
-
-function TSyntaxNodeExtention.HasClassChildNode(): boolean;
-begin
-  Result := (Self.HasChildren) and (Self.ChildNodes[0].typ = ntType) and
-    (Self.ChildNodes[0].GetAttribute(anType) = 'class');
-end;
-
-function TSyntaxNodeExtention.IsTypeDeclaration(): boolean;
-begin
-  Result := (Self.typ = ntTypeDecl);
-end;
-
-procedure TProjectCalculator.AddClassMethods(const aClassMetrics: TClassMetrics;
-  const aPublishedSectionNode: TSyntaxNode);
+function TProjectCalculator.BuildClassMetrics(const aUnitName: string;
+  const aClassNode: TSyntaxNode): TClassMetrics;
+var
+  classMetrics: TClassMetrics;
+  nameofClass: string;
+  publishedSectionNode: TSyntaxNode;
 
   procedure AddClassSectionMethods(const aVisibilty: TVisibility;
     const aSectionRootNodes: TArray<TSyntaxNode>);
@@ -173,56 +162,81 @@ procedure TProjectCalculator.AddClassMethods(const aClassMetrics: TClassMetrics;
     begin
       methodNodes := sectionRootNode.FindNodes(ntMethod);
       for node in methodNodes do
-        aClassMetrics.AddClassMethod(aVisibilty, node.GetAttribute(anName));
+        classMetrics.AddClassMethod(aVisibilty, node.GetAttribute(anName));
     end;
   end;
 
 begin
-  AddClassSectionMethods(visPublic, [aPublishedSectionNode]);
-  AddClassSectionMethods(visPrivate,
-    aPublishedSectionNode.FindNodes(ntPrivate));
-  AddClassSectionMethods(visPrivate,
-    aPublishedSectionNode.FindNodes(ntStrictPrivate));
+  nameofClass := aClassNode.GetAttribute(anName);
+  publishedSectionNode := aClassNode.ChildNodes[0];
+  classMetrics := TClassMetrics.Create(aUnitName, nameofClass);
+  { private sections - methods }
+  AddClassSectionMethods(visPrivate, publishedSectionNode.FindNodes(ntPrivate) +
+    publishedSectionNode.FindNodes(ntStrictPrivate));
+  { protected sections - methods }
   AddClassSectionMethods(visProtected,
-    aPublishedSectionNode.FindNodes(ntProtected));
-  AddClassSectionMethods(visProtected,
-    aPublishedSectionNode.FindNodes(ntStrictProtected));
-  AddClassSectionMethods(visPublic, aPublishedSectionNode.FindNodes(ntPublic));
-  AddClassSectionMethods(visPublic,
-    aPublishedSectionNode.FindNodes(ntPublished));
+    publishedSectionNode.FindNodes(ntProtected) + publishedSectionNode.FindNodes
+    (ntStrictProtected));
+  { public sections - methods }
+  AddClassSectionMethods(visPublic, [publishedSectionNode] +
+    publishedSectionNode.FindNodes(ntPublic) + publishedSectionNode.FindNodes
+    (ntPublished));
+  { ---- }
+  Result := classMetrics;
 end;
 
-function TProjectCalculator.ExtractAllClasses(const aUnitName: string;
+function TProjectCalculator.AnalyseClassesInUnit(const aUnitName: string;
   const aTypeNode: TSyntaxNode): TArray<TClassMetrics>;
 var
   classMetricsList: TList<TClassMetrics>;
-  children: TArray<TSyntaxNode>;
   childNode: TSyntaxNode;
-  IsClassNode: boolean;
-  nameofClass: string;
-  classMetrics: TClassMetrics;
-  publishedSectionNode: TSyntaxNode;
 begin
   Result := nil;
   classMetricsList := TList<TClassMetrics>.Create();
   try
-    children := aTypeNode.ChildNodes;
-    for childNode in children do
-    begin
-      IsClassNode := (childNode.IsTypeDeclaration()) and
-        (childNode.HasClassChildNode());
-      if IsClassNode then
-      begin
-        publishedSectionNode := childNode.ChildNodes[0];
-        nameofClass := childNode.GetAttribute(anName);
-        classMetrics := TClassMetrics.Create(aUnitName, nameofClass);
-        AddClassMethods(classMetrics, publishedSectionNode);
-        classMetricsList.Add(classMetrics);
-      end;
-    end;
+    for childNode in aTypeNode.ChildNodes do
+      if childNode.IsClassNode() then
+        classMetricsList.Add(BuildClassMetrics(aUnitName, childNode));
     Result := classMetricsList.ToArray;
   finally
     classMetricsList.Free;
+  end;
+end;
+
+procedure TProjectCalculator.JoinCorrespondingMethods(const aClassMetricsArray
+  : TArray<TClassMetrics>; const aUnitMetrics: TUnitMetrics);
+var
+  classMetrics: TClassMetrics;
+  classMethodMetrics: TClassMethodMetrics;
+  nameofClass: string;
+  classMethodMetricsArray: TArray<TClassMethodMetrics>;
+  unitMethodMetricsArray: TArray<TUnitMethodMetrics>;
+  i: Integer;
+  j: Integer;
+  qualifiedName: string;
+begin
+  for classMetrics in aClassMetricsArray do
+  begin
+    nameofClass := classMetrics.nameofClass;
+    classMethodMetricsArray := classMetrics.GetMethodsSorted();
+    unitMethodMetricsArray := aUnitMetrics.GetMethodsSorted(nameofClass);
+    i := 0;
+    j := 0;
+    while (i < Length(classMethodMetricsArray)) and
+      (j < Length(unitMethodMetricsArray)) do
+    begin
+      qualifiedName := (nameofClass + '.' + classMethodMetricsArray[i].Name);
+      while (j < Length(unitMethodMetricsArray)) and
+        not(unitMethodMetricsArray[j].HasName(qualifiedName)) do
+        inc(j);
+      if (j < Length(unitMethodMetricsArray)) then
+      begin
+        classMethodMetricsArray[i].WithCorrespondingUnitMethod
+          (unitMethodMetricsArray[j]);
+        inc(i);
+        inc(j);
+      end;
+    end;
   end;
 end;
 
@@ -236,19 +250,21 @@ var
   node: TSyntaxNode;
   interfaceNode: TSyntaxNode;
   publicTypeNodes: TArray<TSyntaxNode>;
-  classMetrics: TArray<TClassMetrics>;
+  classMetricsArray: TArray<TClassMetrics>;
 begin
-  unitMetrics := TUnitMetrics.Create(aUnitName);
   // --- Extract metrics: classes
   interfaceNode := aRootNode.FindNode(ntInterface);
   publicTypeNodes := interfaceNode.FindNodes(ntTypeSection);
+  classMetricsArray := nil;
   for node in publicTypeNodes do
   begin
-    classMetrics := ExtractAllClasses(aUnitName, node);
-    aProjectMetrics.AddClassRange(classMetrics);
+    classMetricsArray := classMetricsArray + AnalyseClassesInUnit
+      (aUnitName, node);
   end;
+  aProjectMetrics.AddClasses(classMetricsArray);
   // --- Extract metrics: methods (implemented in unit)
   implementationNode := aRootNode.FindNode(ntImplementation);
+  unitMetrics := TUnitMetrics.Create(aUnitName);
   for node in implementationNode.ChildNodes do
   begin
     if node.typ = ntMethod then
@@ -259,6 +275,8 @@ begin
     end;
   end;
   aProjectMetrics.AddUnit(unitMetrics);
+  // ----
+  JoinCorrespondingMethods(classMetricsArray, unitMetrics);
 end;
 
 class procedure TProjectCalculator.Calculate(const aFileName: string;

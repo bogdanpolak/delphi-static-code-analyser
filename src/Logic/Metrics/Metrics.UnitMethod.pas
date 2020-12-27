@@ -20,6 +20,7 @@ type
     function SetLenght(aLength: Integer): TUnitMethodMetrics;
     function SetComplexity(aMaxIndentation: Integer): TUnitMethodMetrics;
     function ToString(): string; override;
+    function HasName(aName: string): boolean;
     property FullUnitName: string read fFullUnitName;
     property Kind: string read fKind;
     property Name: string read fName;
@@ -41,6 +42,11 @@ function TUnitMethodMetrics.SetLenght(aLength: Integer): TUnitMethodMetrics;
 begin
   self.fLenght := aLength;
   Result := self;
+end;
+
+function TUnitMethodMetrics.HasName(aName: string): boolean;
+begin
+  Result := (Name.ToUpper = aName.ToUpper);
 end;
 
 function TUnitMethodMetrics.SetComplexity(aMaxIndentation: Integer)

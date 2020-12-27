@@ -3,7 +3,9 @@ unit Metrics.UnitM;
 interface
 
 uses
+  System.SysUtils,
   System.Generics.Collections,
+  System.Generics.Defaults,
   {--}
   Utils.IntegerArray,
   Metrics.UnitMethod;
@@ -20,6 +22,8 @@ type
     function MethodsCount(): Integer;
     function GetMethod(aIdx: Integer): TUnitMethodMetrics;
     function GetMethods: TList<TUnitMethodMetrics>;
+    function GetMethodsSorted(const aNameofClass: string = '')
+      : TArray<TUnitMethodMetrics>;
     procedure AddMethod(const aMethodMetics: TUnitMethodMetrics);
   end;
 
@@ -45,6 +49,34 @@ end;
 function TUnitMetrics.GetMethods: TList<TUnitMethodMetrics>;
 begin
   Result := fMethods;
+end;
+
+function TUnitMetrics.GetMethodsSorted(const aNameofClass: string)
+  : TArray<TUnitMethodMetrics>;
+var
+  sorted: TList<TUnitMethodMetrics>;
+  method: TUnitMethodMetrics;
+begin
+  sorted := TList<TUnitMethodMetrics>.Create();
+  try
+    if aNameofClass <> '' then
+    begin
+      for method in fMethods do
+        if method.Name.StartsWith(aNameofClass + '.') then
+          sorted.Add(method);
+    end
+    else
+      sorted.AddRange(fMethods);
+    sorted.Sort(TComparer<TUnitMethodMetrics>.Construct(
+      function(const Left, Right: TUnitMethodMetrics): Integer
+      begin
+        Result := TComparer<string>.Default.Compare(Left.Name.ToUpper,
+          Right.Name.ToUpper)
+      end));
+    Result := sorted.ToArray;
+  finally
+    sorted.Free;
+  end;
 end;
 
 function TUnitMetrics.MethodsCount: Integer;
