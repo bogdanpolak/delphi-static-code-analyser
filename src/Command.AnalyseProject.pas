@@ -61,11 +61,17 @@ end;
 procedure TAnalyseProjectCommand.GenerateClassReportConsole(const aClassMetrics
   : TClassMetrics);
 var
-  method: TClassMethodMetrics;
+  Method: TClassMethodMetrics;
 begin
-  writeln(Format('%s = class',[aClassMetrics.NameOfClass]));
-  for method in aClassMetrics.GetMethods do
-    writeln(Format('    %s %s',[method.Visibility.ToSymbol(), method.Name]));
+  writeln(Format('%s = class', [aClassMetrics.NameOfClass]));
+  for Method in aClassMetrics.GetMethods do
+  begin
+    if Method.UnitMethod = nil then
+      writeln(Format('    %s %s', [Method.Visibility.ToSymbol(), Method.Name]))
+    else
+      writeln(Format('    %s %s  =>  %s [L:%d]', [Method.Visibility.ToSymbol(),
+        Method.Name, Method.UnitMethod.Name, Method.UnitMethod.Lenght]));
+  end;
 end;
 
 procedure TAnalyseProjectCommand.GenerateMethodReportConsole
